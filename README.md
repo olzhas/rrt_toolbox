@@ -27,7 +27,8 @@ problems for simple 2D mobile robot model and nDOF Redundant Manipulator
 - FNSimple2D.m 
 - FNRedundantManipulator.m
 
-One can add other additional models implementing all methods mentioned in rrt.m, rrt_star.m, rrt_star_fn.m
+One can add other additional models implementing all methods mentioned in
+rrt.m, rrt_star.m, rrt_star_fn.m
 
 
 ## Authors
