@@ -22,7 +22,8 @@ The original package contains 3 files containing algorithm
 - rrt_star.m
 - rrt_star_fn.m
 
-and 2 files containing classes that enable algorithm to solve problems for simple 2D mobile robot model and nDOF Redundant Manipulator
+and 2 files containing classes that enable algorithm to solve
+problems for simple 2D mobile robot model and nDOF Redundant Manipulator
 - FNSimple2D.m 
 - FNRedundantManipulator.m
 
