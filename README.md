@@ -3,7 +3,7 @@ MATLAB implementation of RRT, RRT\* and RRT\*FN algorithms.
 
 ## What is RRT, RRT\* and RRT\*FN
 
-- RRT (Rapidly-Exploring Random Tree) is a probabilistic algorithm for
+- RRT (Rapidly-Exploring Random Tree) is a sampling-based algorithm for
 solving path planning problem. RRT provides feasable solution
 if time of RRT tends to infinity.
 

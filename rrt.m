@@ -40,6 +40,7 @@ end
 
 addpath(genpath(pwd));
 
+% loading settings
 if exist(['configure_' variant '.m'], 'file')
     run([pwd '/configure_' variant '.m']);
     CONF = conf;
@@ -53,7 +54,7 @@ ALGORITHM = 'RRT';
 problem = eval([variant '(RAND_SEED, MAX_NODES, MAP, CONF);']);
 
 if(is_benchmark)
-    benchmark_record_step = 250;
+    benchmark_record_step = 250; % set step size of benchmark 250 by default
     benchmark_states = cell(MAX_ITER / benchmark_record_step, 1);
     timestamp = zeros(MAX_ITER / benchmark_record_step, 1);
     iterstamp = zeros(MAX_ITER / benchmark_record_step, 1);
@@ -62,6 +63,7 @@ end
 %%% Starting a timer
 tic;
 
+%%% RRT starts here
 for ind = 1:MAX_ITER
     new_node = problem.sample();
     nearest_node = problem.nearest(new_node);
