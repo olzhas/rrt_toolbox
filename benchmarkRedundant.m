@@ -1,5 +1,4 @@
-%
-% benchmark script
+% benchmark script for nDOF redundant planar manipulator
 % Olzhas Adiyatov
 % 6/20/2013
 %

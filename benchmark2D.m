@@ -1,5 +1,4 @@
-%
-% benchmark script
+% benchmark script for 2D mobile robot
 % Olzhas Adiyatov
 % 6/4/2013
 %
