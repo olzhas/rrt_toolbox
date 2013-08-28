@@ -3,10 +3,11 @@
 % 6/20/2013
 %
 
+% clear all variables, class, console, close all figures
 clear all;
 close all;
 clc;
-addpath(genpath(pwd));
+addpath(genpath(pwd));  % add current directory recursively to the MATLAB path
 
 maps = cell(3,1);
 maps_name = {'bench_redundant_1.mat', 'bench_redundant_2.mat', 'bench_redundant_3.mat', 'null.mat'};

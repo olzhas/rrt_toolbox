@@ -1,0 +1,179 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>RRT for 2D Mobile Robot</title><meta name="generator" content="MATLAB 8.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-08-28"><meta name="DC.source" content="twodim_rrt_example.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>RRT for 2D Mobile Robot</h1><!--introduction--><p><body><table style="border: 2px solid orange;"><tr>
+<td style="font-size:12pt;">Do not change anything in rrt.m,
+rrt_star.m and rrt_star_fn.m
+</td></tr></table></body></p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Getting started</a></li><li><a href="#2">Choosing the map</a></li><li><a href="#4">Setting maximum number of iterations</a></li><li><a href="#5">Do we have to benchmark</a></li><li><a href="#6">Setting random seed</a></li><li><a href="#7">Choosing the class (model) we want</a></li><li><a href="#8">Rapidly-Exploring Random Tree</a></li><li><a href="#9">Sources of <b>main_2d_mobile_rrt.m</b></a></li></ul></div><h2>Getting started<a name="1"></a></h2><p>Create <b>main_2d_mobile_rrt.m</b> file. You can create m-file with any other name, that is perfectly okay, this will not affect to the solution of a path/motion planning problem. All the sources could be found in examples/ directory of the distribution.</p><h2>Choosing the map<a name="2"></a></h2><p>Firstly, we should define what map to use. It is done by defining map structure the sample code is goes after.</p><pre class="language-matlab">map = struct(<span class="string">'name'</span>, <span class="string">'bench_june1.mat'</span>, <span class="string">'start_point'</span>, [-12.5 -5.5], <span class="string">'goal_point'</span>, [7 -3.65]);
+</pre><div><ul><li><b>name field</b> defines the file name in maps/ directory</li><li><b>start_point</b> field defines where the initial point of the problem</li><li><b>goal_point</b> field define where is the goal point on the map</li></ul></div><h2>Setting maximum number of iterations<a name="4"></a></h2><pre class="language-matlab">max_iter = 20e3;
+</pre><div><ul><li><b>max_iter</b> variable defines how much iteration should be done to solve the path planning problem.</li></ul></div><h2>Do we have to benchmark<a name="5"></a></h2><pre class="language-matlab">is_benchmark = false;
+</pre><div><ul><li><b>is_benchmark</b> enables benchmarking. For more details please read the sources of rrt.m, rrt_star.m and rrt_star_fn.m</li></ul></div><h2>Setting random seed<a name="6"></a></h2><pre class="language-matlab">rand_seed = 40;
+</pre><div><ul><li><b>rand_seed</b> variable is a random seed for random number generator, it is used for sampling nodes. It is usually used for benchmarking. We set the same map, however the random seed is different for the same map. You can use <b>now</b> if you don't care about random seed.</li></ul></div><pre class="language-matlab">rand_seed = now;
+</pre><h2>Choosing the class (model) we want<a name="7"></a></h2><pre class="language-matlab">variant = <span class="string">'FNSimple2D'</span>;
+</pre><div><ul><li><b>variant</b> defines from what class we should instantiate the object. In other words it defines what model we choose for application of RRT.</li></ul></div><p><b>FNSimple2D</b> is a name of a class which contains all necessary methods and fields in order to represent simple 2D Mobile Robot model.</p><h2>Rapidly-Exploring Random Tree<a name="8"></a></h2><pre class="language-matlab">rrt(map, max_iter, is_benchmark, rand_seed, variant);
+</pre><p>Line above runs RRT with given parameters. In addition, <b>rrt</b> function returns the class object with a certain solution.</p><h2>Sources of <b>main_2d_mobile_rrt.m</b><a name="9"></a></h2><p>Press <a href="matlab:edit('examples/main_2d_mobile_rrt.m')">here</a> to play with example code.</p><pre class="language-matlab"><span class="comment">% 2D mobile robot example.</span>
+<span class="comment">% by Olzhas Adiyatov</span>
+<span class="comment">% 08/28/2013</span>
+</pre><pre class="language-matlab">map = struct(<span class="string">'name'</span>, <span class="string">'bench_june1.mat'</span>, <span class="string">'start_point'</span>, [-12.5 -5.5], <span class="string">'goal_point'</span>, [7 -3.65]);
+max_iter = 20e3;
+is_benchmark = false;
+rand_seed = 40;
+variant = <span class="string">'FNSimple2D'</span>;
+result = rrt(map, max_iter, is_benchmark, rand_seed, variant);
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2013a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% RRT for 2D Mobile Robot
+% 
+% <html><body><table style="border: 2px solid orange;"><tr>
+% <td style="font-size:12pt;">Do not change anything in rrt.m,
+% rrt_star.m and rrt_star_fn.m
+% </td></tr></table></body></html>
+% 
+
+%% Getting started
+% Create *main_2d_mobile_rrt.m* file. You can create m-file with any other name, that is
+% perfectly okay, this will not affect to the solution of a path/motion
+% planning problem. All the sources could be found in examples/ directory
+% of the distribution.
+%
+
+%% Choosing the map 
+% Firstly, we should define what map to use. It is done by defining map
+% structure the sample code is goes after.
+%
+%   map = struct('name', 'bench_june1.mat', 'start_point', [-12.5 -5.5], 'goal_point', [7 -3.65]);
+%
+
+%%
+%
+% * *name field* defines the file name in maps/ directory
+% * *start_point* field defines where the initial point of the problem
+% * *goal_point* field define where is the goal point on the map
+%
+
+%% Setting maximum number of iterations
+%
+%   max_iter = 20e3;
+%
+% * *max_iter* variable defines how much iteration should be done to solve
+% the path planning problem.
+
+%% Do we have to benchmark 
+%
+%   is_benchmark = false;
+%
+% * *is_benchmark* enables benchmarking. For more details please read the
+% sources of rrt.m, rrt_star.m and rrt_star_fn.m
+
+%% Setting random seed
+%
+%   rand_seed = 40;
+%
+% * *rand_seed* variable is a random seed for random number generator, it
+% is used for sampling nodes. It is usually used for benchmarking. We set
+% the same map, however the random seed is different for the same map. You
+% can use *now* if you don't care about random seed.
+%
+%   rand_seed = now;
+%
+
+%% Choosing the class (model) we want 
+% 
+%   variant = 'FNSimple2D';
+%
+% * *variant* defines from what class we should instantiate the object. In
+% other words it defines what model we choose for application of RRT.
+%
+% *FNSimple2D* is a name of a class which contains all necessary methods
+% and fields in order to represent simple 2D Mobile Robot model.
+
+%% Rapidly-Exploring Random Tree
+%
+%   rrt(map, max_iter, is_benchmark, rand_seed, variant);
+%
+% Line above runs RRT with given parameters. In addition, *rrt* function
+% returns the class object with a certain solution.
+
+%% Sources of *main_2d_mobile_rrt.m*
+% Press 
+% <matlab:edit('examples/main_2d_mobile_rrt.m') here>
+% to play with example code.
+%
+%   % 2D mobile robot example.
+%   % by Olzhas Adiyatov 
+%   % 08/28/2013
+%   
+%   map = struct('name', 'bench_june1.mat', 'start_point', [-12.5 -5.5], 'goal_point', [7 -3.65]);
+%   max_iter = 20e3;
+%   is_benchmark = false;
+%   rand_seed = 40;
+%   variant = 'FNSimple2D';
+%   result = rrt(map, max_iter, is_benchmark, rand_seed, variant);
+%
+
+##### SOURCE END #####
+--></body></html>

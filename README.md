@@ -7,12 +7,11 @@ MATLAB implementation of RRT, RRT\* and RRT\*FN algorithms.
 solving path planning problem. RRT provides feasable solution
 if time of RRT tends to infinity.
 
-- RRT\* is a probabilistic algorithm for solving motion planning problem,
-which is similar to RRT but unlike RRT provides faster rate of
-convergance to the feasable solution.
+- RRT\* is a sampling-based algorithm for solving motion planning problem,
+which is an probabilistically optimal variant of RRT. RRT* converges to the optimal solution asymptotically.
 
-- RRT\*FN also is a probabilistic algorithm based on RRT\*.
-RRT\*FN inherents faster rate of convergence to the feasable solution,
+- RRT\*FN is a sampling-based algorithm based on RRT\*.
+RRT\*FN inherents asymptotical convergence to the optimal solution,
 however RRT\*FN implements it using less memory.
 
 ## How to use

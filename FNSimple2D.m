@@ -25,6 +25,7 @@ classdef FNSimple2D < handle
     methods
         % class constructor
         function this = FNSimple2D(rand_seed, max_nodes, map, conf)
+            max_nodes = int32(max_nodes);
             rng(rand_seed);
             this.tree = zeros(2, max_nodes);
             this.parent = zeros(1, max_nodes);
@@ -112,18 +113,15 @@ classdef FNSimple2D < handle
             end
             
             for obs_ind = 1:this.obstacle.num
-                
                 % circle as a bounding shape test
-                
-                if sum((this.obstacle.cir_center{obs_ind} - new_node_position) .^2) <= this.obstacle.r_sqr(obs_ind)
+                if sum((this.obstacle.cir_center{obs_ind} - new_node_position) .^2) <= this.obstacle.r_sqr(obs_ind) || ...
+                    sum((this.obstacle.cir_center{obs_ind} - this.tree(:,node_index)) .^2) <= this.obstacle.r_sqr(obs_ind)
                     % simple stupid collision detection based on line intersection
                     if isintersect(this.obstacle.output{obs_ind}, [this.tree(:, node_index) new_node_position]', ...
                             this.obstacle.m{obs_ind}, this.obstacle.b{obs_ind}, this.obstacle.vert_num(obs_ind)) == 1
 %                     if isintersect(this.obstacle.output{obs_ind}, [this.tree(:, node_index) new_node_position]') == true
-
                         collision = true;
                         return;
-                   
                     end
                 end           
             end
@@ -158,13 +156,10 @@ classdef FNSimple2D < handle
             min_node_ind = nearest_node;
             min_cumcost = this.cumcost(nearest_node) + this.euclidian_distance(this.tree(:, nearest_node), new_node_position);
             for ind=1:numel(neighbors)
-                
-                if(~this.obstacle_collision(new_node_position, neighbors(ind)))
-                    temp_cumcost = this.cumcost(neighbors(ind)) + this.euclidian_distance(this.tree(:, neighbors(ind)), new_node_position);
-                    if temp_cumcost < min_cumcost
+                temp_cumcost = this.cumcost(neighbors(ind)) + this.euclidian_distance(this.tree(:, neighbors(ind)), new_node_position);
+                if temp_cumcost < min_cumcost && ~this.obstacle_collision(new_node_position, neighbors(ind))
                         min_cumcost = temp_cumcost;
                         min_node_ind = neighbors(ind);
-                    end
                 end
             end
         end
@@ -288,6 +283,8 @@ classdef FNSimple2D < handle
             % obstacle drawing
             for k = 1:this.obstacle.num
                 p2 = fill(this.obstacle.output{k}(1:end, 1), this.obstacle.output{k}(1:end, 2), 'r');
+                set(p2,'HandleVisibility','off','EdgeAlpha',0);
+                this.plot_circle(this.obstacle.cir_center{k}(1),this.obstacle.cir_center{k}(2), this.obstacle.r(k));
                 set(p2,'HandleVisibility','off','EdgeAlpha',0);
             end
             

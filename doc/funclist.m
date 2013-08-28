@@ -22,3 +22,13 @@
 % inherents all the optimization features of RRT*, but in contrast using
 % limited number of nodes i.e. memory is limited.
 %
+%% 
+% <html><body><table style="border: 2px solid orange;"><tr>
+% <td style="font-size:12pt;">Please do not change anything in rrt.m,
+% rrt_star.m and rrt_star_fn.m files unless it is a bug. <br/>Everything
+% you want to add (e.g. new function or modifications of a model)
+% please do it creating/editing classes for models.
+% e.g. <strong>FNSimple2D.m</strong> or
+% <strong>FNRedundantManipulator.m</strong>
+% </td></tr></table></body></html>
+% 

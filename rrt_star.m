@@ -1,4 +1,4 @@
-function problem = rrt_star(map, max_iter, is_benchmark, rand_seed, variant)
+function output = rrt_star(map, max_iter, is_benchmark, rand_seed, variant)
 % RRT*
 % Olzhas Adiyatov
 % 05/15/2013
@@ -104,6 +104,5 @@ end
 % 
 % save(['rrt_star ' num2str(MAX_ITER) '.mat'], '-v7.3');
 
-% free memory
-clear all;
-clear('rrt_star.m');
+output = problem;
+
