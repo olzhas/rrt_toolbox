@@ -1,7 +1,7 @@
 % MATLAB RRT*FN package for solving path/motion planning problems.
+% Version 0.0.1 23-Aug-2013
 %
 % RRT and RRT* implementations are included as well
-%
 %
 % FILES:
 %   README.md                        - readme file, read it please.

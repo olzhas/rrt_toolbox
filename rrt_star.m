@@ -1,4 +1,4 @@
-function rrt_star(map, max_iter, is_benchmark, rand_seed, variant)
+function problem = rrt_star(map, max_iter, is_benchmark, rand_seed, variant)
 % RRT*
 % Olzhas Adiyatov
 % 05/15/2013

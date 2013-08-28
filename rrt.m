@@ -1,4 +1,4 @@
-function rrt(map, max_iter, is_benchmark, rand_seed, variant)
+function problem = rrt(map, max_iter, is_benchmark, rand_seed, variant)
 % RRT
 % Olzhas Adiyatov
 % 05/13/2013
@@ -11,8 +11,8 @@ if nargin < 5
     
     % loading conf
     RAND_SEED   = 1;
-    MAX_ITER   = 2e3;
-    MAX_NODES    = MAX_ITER;
+    MAX_ITER    = 2e3;
+    MAX_NODES   = MAX_ITER;
     
     % here you can specify what class to use, each class represent
     % different model.
@@ -20,14 +20,14 @@ if nargin < 5
     % FNRedundantManipulator represents redundant robotic manipulator, DOF is
     % defined in configuration files.
     
-
-%         variant     = 'FNSimple2D';
-%         MAP = struct('name', 'bench_june1.mat', 'start_point', [-12.5 -5.5], 'goal_point', [7 -3.65]);
-%     variant     = 'FNRedundantManipulator';
-%     MAP = struct('name', 'bench_redundant_3.mat', 'start_point', [0 0], 'goal_point', [35 35]);
-    variant     = 'GridBased2D';
-    MAP = struct('name', 'grid_map.mat', 'start_point', [150 150], 'goal_point', [250 50]);
-
+    
+    variant     = 'FNSimple2D';
+    MAP = struct('name', 'bench_june1.mat', 'start_point', [-12.5 -5.5], 'goal_point', [7 -3.65]);
+    %     variant     = 'FNRedundantManipulator';
+    %     MAP = struct('name', 'bench_redundant_3.mat', 'start_point', [0 0], 'goal_point', [35 35]);
+    %     variant     = 'GridBased2Dimrotate';
+    %     MAP = struct('name', 'grid_map.mat', 'start_point', [150 150], 'goal_point', [250 50]);
+    
     
     % do we have to benchmark?
     is_benchmark = false;

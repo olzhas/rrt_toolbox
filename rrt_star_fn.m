@@ -1,4 +1,4 @@
-function rrt_star_fn(map, max_iter, max_nodes, is_benchmark, rand_seed, variant)
+function problem = rrt_star_fn(map, max_iter, max_nodes, is_benchmark, rand_seed, variant)
 % RRT*FN
 % Olzhas Adiyatov
 % 05/26/2013
@@ -20,12 +20,12 @@ if nargin < 6
     % FNRedundantManipulator represents redundant robotic manipulator, DOF is
     % defined in configuration files.
 
-%         variant     = 'FNSimple2D';
-%         MAP = struct('name', 'bench_june1.mat', 'start_point', [-12.5 -5.5], 'goal_point', [7 -3.65]);
+        variant     = 'FNSimple2D';
+        MAP = struct('name', 'bench_june1.mat', 'start_point', [-12.5 -5.5], 'goal_point', [7 -3.65]);
 %     variant     = 'FNRedundantManipulator';
 %     MAP = struct('name', 'bench_redundant_3.mat', 'start_point', [0 0], 'goal_point', [35 35]);
-    variant     = 'GridBased2Dimrotate';
-    MAP = struct('name', 'grid_map.mat', 'start_point', [150 150], 'goal_point', [250 50]);
+%     variant     = 'GridBased2Dimrotate';
+%     MAP = struct('name', 'grid_map.mat', 'start_point', [150 150], 'goal_point', [250 50]);
     %[180 284]
 
     % do we have to benchmark?
