@@ -119,7 +119,6 @@ classdef FNSimple2D < handle
                     % simple stupid collision detection based on line intersection
                     if isintersect(this.obstacle.output{obs_ind}, [this.tree(:, node_index) new_node_position]', ...
                             this.obstacle.m{obs_ind}, this.obstacle.b{obs_ind}, this.obstacle.vert_num(obs_ind)) == 1
-%                     if isintersect(this.obstacle.output{obs_ind}, [this.tree(:, node_index) new_node_position]') == true
                         collision = true;
                         return;
                     end

@@ -14,6 +14,7 @@
                  <tocitem target="html/redundant_rrt_star_example.html">RRT* for Planar redundant manipulator</tocitem>
                  <tocitem target="html/twodim_rrt_star_fn_example.html">RRT*FN for 2D mobile robot</tocitem>
                  <tocitem target="html/redundant_rrt_star_fn_example.html">RRT*FN for Planar redundant manipulator</tocitem>
+                 <tocitem target="html/how_to_create.html">HOWTO create new model (class)</tocitem>
         </tocitem>
     </tocitem>
 </toc>

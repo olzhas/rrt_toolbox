@@ -1,4 +1,4 @@
-%% RRT* for 2D Mobile Robot
+%% RRT for Planar Redundant Manipulator
 % 
 % <html><body><table style="border: 2px solid orange;"><tr>
 % <td style="font-size:12pt;">Do not change anything in rrt.m,
@@ -7,7 +7,7 @@
 % 
 
 %% Getting started
-% Create *main_2d_mobile_rrt_star.m* file. You can create m-file with any other name, that is
+% Create *main_redundant_rrt_star.m* file. You can create m-file with any other name, that is
 % perfectly okay, this will not affect to the solution of a path/motion
 % planning problem. All the sources could be found in examples/ directory
 % of the distribution.
@@ -17,8 +17,7 @@
 % Firstly, we should define what map to use. It is done by defining map
 % structure the sample code is goes after.
 %
-%   map = struct('name', 'bench_june1.mat', 'start_point', [-12.5 -5.5], 'goal_point', [7 -3.65]);
-%
+%   map = struct('name', 'bench_redundant_3.mat', 'start_point', [0 0], 'goal_point', [35 35]);
 
 %%
 %
@@ -41,7 +40,7 @@
 % * *is_benchmark* enables benchmarking. For more details please read the
 % sources of rrt.m, rrt_star.m and rrt_star_fn.m
 
-%% Step 4: Setting random seed
+%% Setting random seed
 %
 %   rand_seed = 40;
 %
@@ -51,11 +50,11 @@
 % can use *now* if you don't care about random seed.
 %
 %   rand_seed = now;
-%
-
-%% Step 5: Choosing the class (model) we want 
 % 
-%   variant = 'FNSimple2D';
+
+%% Choosing the class (model) we want 
+% 
+%   variant = 'FNRedundantManipulator';
 %
 % * *variant* defines from what class we should instantiate the object. In
 % other words it defines what model we choose for application of RRT.
@@ -63,26 +62,27 @@
 % *FNSimple2D* is a name of a class which contains all necessary methods
 % and fields in order to represent simple 2D Mobile Robot model.
 
-%% Step 6: RRT*
+%% RRT*
 %
 %   rrt_star(map, max_iter, is_benchmark, rand_seed, variant);
 %
 % Line above runs RRT with given parameters. In addition, *rrt* function
 % returns the class object with a certain solution.
+% 
 
-%% Sources of *main_2d_mobile_rrt.m*
+%% Sources of *main_redundant_rrt_star.m*
 % Press 
-% <matlab:edit('examples/main_2d_mobile_rrt_star.m') here>
+% <matlab:edit('examples/main_redundant_rrt_star.m') here>
 % to play with example code.
 %
-%   % 2D mobile robot example.
+%   % RRT for Redundant manipulator example.
 %   % by Olzhas Adiyatov 
 %   % 08/28/2013
 %   
-%   map = struct('name', 'bench_june1.mat', 'start_point', [-12.5 -5.5], 'goal_point', [7 -3.65]);
+%   map = struct('name', 'bench_redundant_3.mat', 'start_point', [0 0], 'goal_point', [35 35]);
 %   max_iter = 20e3;
 %   is_benchmark = false;
 %   rand_seed = 40;
-%   variant = 'FNSimple2D';
+%   variant = 'FNRedundantManipulator';
 %   result = rrt_star(map, max_iter, is_benchmark, rand_seed, variant);
 %

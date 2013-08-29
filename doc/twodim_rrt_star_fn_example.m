@@ -1,4 +1,4 @@
-%% RRT* for 2D Mobile Robot
+%% RRT*FN for 2D Mobile Robot
 % 
 % <html><body><table style="border: 2px solid orange;"><tr>
 % <td style="font-size:12pt;">Do not change anything in rrt.m,
@@ -7,7 +7,7 @@
 % 
 
 %% Getting started
-% Create *main_2d_mobile_rrt_star.m* file. You can create m-file with any other name, that is
+% Create *main_2d_mobile_rrt_star_fn.m* file. You can create m-file with any other name, that is
 % perfectly okay, this will not affect to the solution of a path/motion
 % planning problem. All the sources could be found in examples/ directory
 % of the distribution.
@@ -34,14 +34,22 @@
 % * *max_iter* variable defines how much iteration should be done to solve
 % the path planning problem.
 
-%% Step 3: Do we have to benchmark 
+%% Step 3: Setting maximum nodes in the tree
+%
+%   max_nodes = 5e3;
+%
+% * *max_nodes* variable defines how many nodes should be stored in the
+% tree.
+
+
+%% Step 4: Do we have to benchmark 
 %
 %   is_benchmark = false;
 %
 % * *is_benchmark* enables benchmarking. For more details please read the
 % sources of rrt.m, rrt_star.m and rrt_star_fn.m
 
-%% Step 4: Setting random seed
+%% Step 5: Setting random seed
 %
 %   rand_seed = 40;
 %
@@ -53,7 +61,7 @@
 %   rand_seed = now;
 %
 
-%% Step 5: Choosing the class (model) we want 
+%% Step 6: Choosing the class (model) we want 
 % 
 %   variant = 'FNSimple2D';
 %
@@ -63,16 +71,16 @@
 % *FNSimple2D* is a name of a class which contains all necessary methods
 % and fields in order to represent simple 2D Mobile Robot model.
 
-%% Step 6: RRT*
+%% Step 7: RRT*FN
 %
 %   rrt_star(map, max_iter, is_benchmark, rand_seed, variant);
 %
 % Line above runs RRT with given parameters. In addition, *rrt* function
 % returns the class object with a certain solution.
 
-%% Sources of *main_2d_mobile_rrt.m*
+%% Sources of *main_2d_mobile_rrt_star_fn.m*
 % Press 
-% <matlab:edit('examples/main_2d_mobile_rrt_star.m') here>
+% <matlab:edit('examples/main_2d_mobile_rrt_star_fn.m') here>
 % to play with example code.
 %
 %   % 2D mobile robot example.
@@ -84,5 +92,5 @@
 %   is_benchmark = false;
 %   rand_seed = 40;
 %   variant = 'FNSimple2D';
-%   result = rrt_star(map, max_iter, is_benchmark, rand_seed, variant);
+%   result = rrt_star_fn(map, max_iter, max_nodes, is_benchmark, rand_seed, variant);
 %
