@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>rrt</title><meta name="generator" content="MATLAB 8.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-08-23"><meta name="DC.source" content="rrt.m"><style type="text/css">
+      --><title>rrt_star_fn</title><meta name="generator" content="MATLAB 8.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-09-01"><meta name="DC.source" content="rrt_star_fn.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -65,219 +65,36 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Configuration block</a></li><li><a href="#3">Starting a timer</a></li><li><a href="#4">RRT starts here</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> rrt(map, max_iter, is_benchmark, rand_seed, variant)
-<span class="comment">% RRT</span>
-<span class="comment">% Olzhas Adiyatov</span>
-<span class="comment">% 05/13/2013</span>
-</pre><h2>Configuration block<a name="2"></a></h2><pre class="codeinput"><span class="keyword">if</span> nargin &lt; 5
-    clear <span class="string">all</span>;
-    close <span class="string">all</span>;
-    clc;
-
-    <span class="comment">% loading conf</span>
-    RAND_SEED   = 1;
-    MAX_ITER   = 2e3;
-    MAX_NODES    = MAX_ITER;
-
-    <span class="comment">% here you can specify what class to use, each class represent</span>
-    <span class="comment">% different model.</span>
-    <span class="comment">% FNSimple2D provides RRT and RRT* for 2D mobile robot represented as a dot</span>
-    <span class="comment">% FNRedundantManipulator represents redundant robotic manipulator, DOF is</span>
-    <span class="comment">% defined in configuration files.</span>
-
-
-        variant     = <span class="string">'FNSimple2D'</span>;
-        MAP = struct(<span class="string">'name'</span>, <span class="string">'bench_june1.mat'</span>, <span class="string">'start_point'</span>, [-12.5 -5.5], <span class="string">'goal_point'</span>, [7 -3.65]);
-<span class="comment">%     variant     = 'FNRedundantManipulator';</span>
-<span class="comment">%     MAP = struct('name', 'bench_redundant_3.mat', 'start_point', [0 0], 'goal_point', [35 35]);</span>
-<span class="comment">%     variant     = 'GridBased2Dimrotate';</span>
-<span class="comment">%     MAP = struct('name', 'grid_map.mat', 'start_point', [150 150], 'goal_point', [250 50]);</span>
-
-
-    <span class="comment">% do we have to benchmark?</span>
-    is_benchmark = false;
-<span class="keyword">else</span>
-    MAX_NODES   = max_iter;
-    MAX_ITER    = max_iter;
-    RAND_SEED   = rand_seed;
-    MAP         = map;
-<span class="keyword">end</span>
-
-addpath(genpath(pwd));
-
-<span class="comment">% loading settings</span>
-<span class="keyword">if</span> exist([<span class="string">'configure_'</span> variant <span class="string">'.m'</span>], <span class="string">'file'</span>)
-    run([pwd <span class="string">'/configure_'</span> variant <span class="string">'.m'</span>]);
-    CONF = conf;
-<span class="keyword">else</span>
-    disp(<span class="string">'ERROR: There is no configuration file!'</span>)
-    <span class="keyword">return</span>
-<span class="keyword">end</span>
-
-ALGORITHM = <span class="string">'RRT'</span>;
-
-problem = eval([variant <span class="string">'(RAND_SEED, MAX_NODES, MAP, CONF);'</span>]);
-
-<span class="keyword">if</span>(is_benchmark)
-    benchmark_record_step = 250; <span class="comment">% set step size of benchmark 250 by default</span>
-    benchmark_states = cell(MAX_ITER / benchmark_record_step, 1);
-    timestamp = zeros(MAX_ITER / benchmark_record_step, 1);
-    iterstamp = zeros(MAX_ITER / benchmark_record_step, 1);
-<span class="keyword">end</span>
-</pre><h2>Starting a timer<a name="3"></a></h2><pre class="codeinput">tic;
-</pre><h2>RRT starts here<a name="4"></a></h2><pre class="codeinput"><span class="keyword">for</span> ind = 1:MAX_ITER
-    new_node = problem.sample();
-    nearest_node = problem.nearest(new_node);
-    new_node = problem.steer(nearest_node, new_node);
-    <span class="keyword">if</span>(~problem.obstacle_collision(new_node, nearest_node))
-        problem.insert_node(nearest_node, new_node);
-    <span class="keyword">end</span>
-
-    <span class="keyword">if</span> is_benchmark &amp;&amp; (mod(ind, benchmark_record_step) == 0)
-        benchmark_states{ind/benchmark_record_step} = problem.copyobj();
-        timestamp(ind/benchmark_record_step) = toc;
-        iterstamp(ind/benchmark_record_step) = ind;
-    <span class="keyword">end</span>
-
-    <span class="keyword">if</span>(mod(ind, 1000) == 0)
-        disp([num2str(ind) <span class="string">' iterations '</span> num2str(problem.nodes_added-1) <span class="string">' nodes in '</span> num2str(toc)]);
-    <span class="keyword">end</span>
-<span class="keyword">end</span>
-
-
-<span class="keyword">if</span> (is_benchmark)
-    <span class="keyword">if</span> strcmp(computer, <span class="string">'GLNXA64'</span>);
-        result_dir = <span class="string">'/home/olzhas/june_results/'</span>;
-    <span class="keyword">else</span>
-        result_dir = <span class="string">'C:\june_results\'</span>;
-    <span class="keyword">end</span>
-    dir_name = [result_dir datestr(now, <span class="string">'yyyy-mm-dd'</span>)];
-    mkdir(dir_name);
-    save([dir_name <span class="string">'/'</span> ALGORITHM <span class="string">'_'</span> MAP.name <span class="string">'_'</span> num2str(MAX_NODES) <span class="string">'_of_'</span> num2str(MAX_ITER) <span class="string">'_'</span> datestr(now, <span class="string">'HH-MM-SS'</span>) <span class="string">'.mat'</span>], <span class="string">'-v7.3'</span>);
-    set(gcf, <span class="string">'Visible'</span>, <span class="string">'off'</span>);
-    <span class="comment">%     problem.plot();</span>
-    <span class="comment">%     saveas(gcf, [dir_name '\' ALGORITHM '_' MAP.name '_' num2str(MAX_NODES) '_of_' num2str(MAX_ITER) '_' datestr(now, 'HH-MM-SS') '.fig']);</span>
-<span class="keyword">else</span>
-    problem.plot();
-<span class="keyword">end</span>
-
-<span class="keyword">if</span> is_benchmark
-    <span class="comment">% free memory</span>
-    clear <span class="string">all</span>;
-    clear(<span class="string">'rrt.m'</span>);
-<span class="keyword">end</span>
-</pre><pre class="codeoutput">1000 iterations 965 nodes in 0.85754
-2000 iterations 1916 nodes in 1.8026
-40
-</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2013a</a><br></p></div><!--
+  </style></head><body><div class="content"><h1>rrt_star_fn</h1><!--introduction--><p><b>RRT*FN</b> is a memory efficient variant of RRT*. It inherents all the optimization features of RRT*, but in contrast using limited number of nodes i.e. memory is limited.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Syntax</a></li><li><a href="#2">Input</a></li><li><a href="#3">Output</a></li></ul></div><h2>Syntax<a name="1"></a></h2><pre>problem = rrt_star(map, max_iter, max_nodes, is_benchmark, rand_seed, variant)
+function returns the object of the respective class with the result</pre><h2>Input<a name="2"></a></h2><pre>map           -- struct with appropriate fields (developer of
+              the class provides more information on this topic)
+max_iter      -- number of iteration to solve the problem
+max_nodes     -- the maximum allowed number of nodes added to the tree
+is_benchmark  -- if true saves snapshots of the tree in a special directory
+              boolean variable
+rand_seed     -- a random seed
+variant       -- what class to choose, class used defines the problem space</pre><h2>Output<a name="3"></a></h2><p><b>problem</b> is an object of an appropriate problem space representing class</p><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2013a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
-function rrt(map, max_iter, is_benchmark, rand_seed, variant)
-% RRT
-% Olzhas Adiyatov
-% 05/13/2013
-
-%%% Configuration block
-if nargin < 5
-    clear all;
-    close all;
-    clc;
-    
-    % loading conf
-    RAND_SEED   = 1;
-    MAX_ITER   = 2e3;
-    MAX_NODES    = MAX_ITER;
-    
-    % here you can specify what class to use, each class represent
-    % different model.
-    % FNSimple2D provides RRT and RRT* for 2D mobile robot represented as a dot
-    % FNRedundantManipulator represents redundant robotic manipulator, DOF is
-    % defined in configuration files.
-    
-
-        variant     = 'FNSimple2D';
-        MAP = struct('name', 'bench_june1.mat', 'start_point', [-12.5 -5.5], 'goal_point', [7 -3.65]);
-%     variant     = 'FNRedundantManipulator';
-%     MAP = struct('name', 'bench_redundant_3.mat', 'start_point', [0 0], 'goal_point', [35 35]);
-%     variant     = 'GridBased2Dimrotate';
-%     MAP = struct('name', 'grid_map.mat', 'start_point', [150 150], 'goal_point', [250 50]);
-
-    
-    % do we have to benchmark?
-    is_benchmark = false;
-else
-    MAX_NODES   = max_iter;
-    MAX_ITER    = max_iter;
-    RAND_SEED   = rand_seed;
-    MAP         = map;
-end
-
-addpath(genpath(pwd));
-
-% loading settings
-if exist(['configure_' variant '.m'], 'file')
-    run([pwd '/configure_' variant '.m']);
-    CONF = conf;
-else
-    disp('ERROR: There is no configuration file!')
-    return
-end
-
-ALGORITHM = 'RRT';
-
-problem = eval([variant '(RAND_SEED, MAX_NODES, MAP, CONF);']);
-
-if(is_benchmark)
-    benchmark_record_step = 250; % set step size of benchmark 250 by default
-    benchmark_states = cell(MAX_ITER / benchmark_record_step, 1);
-    timestamp = zeros(MAX_ITER / benchmark_record_step, 1);
-    iterstamp = zeros(MAX_ITER / benchmark_record_step, 1);
-end
-
-%%% Starting a timer
-tic;
-
-%%% RRT starts here
-for ind = 1:MAX_ITER
-    new_node = problem.sample();
-    nearest_node = problem.nearest(new_node);
-    new_node = problem.steer(nearest_node, new_node);
-    if(~problem.obstacle_collision(new_node, nearest_node))
-        problem.insert_node(nearest_node, new_node);
-    end
-    
-    if is_benchmark && (mod(ind, benchmark_record_step) == 0)
-        benchmark_states{ind/benchmark_record_step} = problem.copyobj();
-        timestamp(ind/benchmark_record_step) = toc;
-        iterstamp(ind/benchmark_record_step) = ind;
-    end
-    
-    if(mod(ind, 1000) == 0)
-        disp([num2str(ind) ' iterations ' num2str(problem.nodes_added-1) ' nodes in ' num2str(toc)]);
-    end
-end
-
-
-if (is_benchmark)
-    if strcmp(computer, 'GLNXA64');
-        result_dir = '/home/olzhas/june_results/';
-    else
-        result_dir = 'C:\june_results\';
-    end
-    dir_name = [result_dir datestr(now, 'yyyy-mm-dd')];
-    mkdir(dir_name);
-    save([dir_name '/' ALGORITHM '_' MAP.name '_' num2str(MAX_NODES) '_of_' num2str(MAX_ITER) '_' datestr(now, 'HH-MM-SS') '.mat'], '-v7.3');
-    set(gcf, 'Visible', 'off');
-    %     problem.plot();
-    %     saveas(gcf, [dir_name '\' ALGORITHM '_' MAP.name '_' num2str(MAX_NODES) '_of_' num2str(MAX_ITER) '_' datestr(now, 'HH-MM-SS') '.fig']);
-else
-    problem.plot();
-end
-
-if is_benchmark
-    % free memory
-    clear all;
-    clear('rrt.m');
-end
-
+%% rrt_star_fn
+% *RRT*FN* is a memory efficient variant of RRT*. It inherents all
+% the optimization features of RRT*, but in contrast using limited
+% number of nodes i.e. memory is limited.
+%
+%% Syntax
+%  problem = rrt_star(map, max_iter, max_nodes, is_benchmark, rand_seed, variant)
+%  function returns the object of the respective class with the result
+%
+%% Input
+%  map           REPLACE_WITH_DASH_DASH struct with appropriate fields (developer of 
+%                the class provides more information on this topic)
+%  max_iter      REPLACE_WITH_DASH_DASH number of iteration to solve the problem
+%  max_nodes     REPLACE_WITH_DASH_DASH the maximum allowed number of nodes added to the tree
+%  is_benchmark  REPLACE_WITH_DASH_DASH if true saves snapshots of the tree in a special directory
+%                boolean variable
+%  rand_seed     REPLACE_WITH_DASH_DASH a random seed 
+%  variant       REPLACE_WITH_DASH_DASH what class to choose, class used defines the problem space
+%% Output
+% *problem* is an object of an appropriate problem space representing class 
+%
 ##### SOURCE END #####
 --></body></html>

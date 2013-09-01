@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>RRT*FN Toolbox</title><meta name="generator" content="MATLAB 8.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-08-29"><meta name="DC.source" content="funclist.m"><style type="text/css">
+      --><title>RRT*FN Toolbox</title><meta name="generator" content="MATLAB 8.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-09-01"><meta name="DC.source" content="getting_started.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -65,7 +65,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1>RRT*FN Toolbox</h1><!--introduction--><p><b>RRT*FN Toolbox</b> for solving path/motion planning problems. Toolbox provides <b>RRT</b>, <b>RRT</b>* and <b>RRT*FN</b> for solving various problems (e.g. 2D mobile robot, planar redundant manipulator)</p><p>Sampling-based motion planning algorithms got a lot of research attention in past decade or so. The main reason of the popularity is an ability to solve relatively easy motion planning problems of 2D mobile robot as well as hard high dimensional problems both.</p><p><b>Rapidly-Exporing Random Tree (RRT)</b> is sampling-based algorithm, solves the problem of motion and path planning providing feasible solutions however it does not take into account optimality of the solution.</p><p><b>RRT</b>* is probabilistically optimal variant of RRT which converges to the optimal solution asymtotically. Due to the fact that RRT* takes cost of the path into consideration, the computational diffuculty increases with each node added to tree, a good example of this problem is finding neighbors.</p><p><b>RRT*FN (Fixed Nodes)</b> is a memory efficient variant of RRT*. It inherents all the optimization features of RRT*, but in contrast using limited number of nodes i.e. memory is limited.</p><!--/introduction--><p><body><table style="border: 2px solid orange;"><tr>
+  </style></head><body><div class="content"><h1>RRT*FN Toolbox</h1><!--introduction--><p><b>RRT*FN Toolbox</b> for solving path/motion planning problems. Toolbox provides <b>RRT</b>, <b>RRT</b>* and <b>RRT*FN</b> for solving various problems (e.g. 2D mobile robot, planar redundant manipulator)</p><p>Sampling-based motion planning algorithms got a lot of research attention in past decade or so. The main reason of the popularity is an ability to solve relatively easy motion planning problems of 2D mobile robot as well as hard high dimensional problems both.</p><p><b>Rapidly-Exporing Random Tree (RRT)</b> is sampling-based algorithm, solves the problem of motion and path planning providing feasible solutions however it does not take into account optimality of the solution.</p><p><img vspace="5" hspace="5" src="rrt_pseudocode.png" alt=""> </p><p><b>RRT</b>* is probabilistically optimal variant of RRT which converges to the optimal solution asymtotically. Due to the fact that RRT* takes cost of the path into consideration, the computational diffuculty increases with each node added to tree, a good example of this problem is finding neighbors.</p><p><img vspace="5" hspace="5" src="rrt_star_pseudocode.png" alt=""> </p><p><img vspace="5" hspace="5" src="rrt_star_pseudocode_1.png" alt=""> </p><p><b>RRT*FN (Fixed Nodes)</b> is a memory efficient variant of RRT*. It inherents all the optimization features of RRT*, but in contrast using limited number of nodes i.e. memory is limited.</p><p><img vspace="5" hspace="5" src="rrt_star_fn_pseudocode.png" alt=""> </p><!--/introduction--><p><img vspace="5" hspace="5" src="rrts_comparison.png" alt=""> </p><p><body><table style="border: 2px solid orange;"><tr>
 <td style="font-size:12pt;">Please do not change anything in rrt.m,
 rrt_star.m and rrt_star_fn.m files unless it is a bug. <br/>Everything
 you want to add (e.g. new function or modifications of a model)
@@ -88,16 +88,27 @@ e.g. <strong>FNSimple2D.m</strong> or
 % the problem of motion and path planning providing feasible solutions
 % however it does not take into account optimality of the solution.
 %
+% <<rrt_pseudocode.png>>
+%
 % *RRT** is probabilistically optimal variant of RRT which converges to the
 % optimal solution asymtotically. Due to the fact that RRT* takes cost of
 % the path into consideration, the computational diffuculty increases with
 % each node added to tree, a good example of this problem is finding
 % neighbors.
 %
+% <<rrt_star_pseudocode.png>>
+%
+% <<rrt_star_pseudocode_1.png>>
+%
 % *RRT*FN (Fixed Nodes)* is a memory efficient variant of RRT*. It
 % inherents all the optimization features of RRT*, but in contrast using
 % limited number of nodes i.e. memory is limited.
 %
+% <<rrt_star_fn_pseudocode.png>> 
+%
+%%
+%
+% <<rrts_comparison.png>>
 %% 
 % <html><body><table style="border: 2px solid orange;"><tr>
 % <td style="font-size:12pt;">Please do not change anything in rrt.m,

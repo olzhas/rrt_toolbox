@@ -1,10 +1,12 @@
-%% rrt 
-% Rapidly-Exploring Random Tree is sampling-based algorithm, solves 
-% the problem of motion and path planning providing feasible solutions
-% however it does not take into account optimality of the solution.
+%% rrt_star
+% *RRT** is probabilistically optimal variant of RRT which converges
+% to the optimal solution asymtotically. Due to the fact that RRT* takes
+% cost of the path into consideration, the computational diffuculty
+% increases with each node added to tree, a good example of this
+% problem is finding neighbors.
 %
 %% Syntax
-%  problem = rrt(map, max_iter, is_benchmark, rand_seed, variant)
+%  problem = rrt_star(map, max_iter, is_benchmark, rand_seed, variant)
 %  function returns the object of the respective class with the result
 %
 %% Input

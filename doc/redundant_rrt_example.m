@@ -13,7 +13,7 @@
 % of the distribution.
 %
 
-%% Choosing the map 
+%% Step 1: Choosing the map 
 % Firstly, we should define what map to use. It is done by defining map
 % structure the sample code is goes after.
 %
@@ -26,21 +26,21 @@
 % * *goal_point* field define where is the goal point on the map
 %
 
-%% Setting maximum number of iterations
+%% Step 2: Setting maximum number of iterations
 %
 %   max_iter = 20e3;
 %
 % * *max_iter* variable defines how much iteration should be done to solve
 % the path planning problem.
 
-%% Do we have to benchmark 
+%% Step 3: Do we have to benchmark 
 %
 %   is_benchmark = false;
 %
 % * *is_benchmark* enables benchmarking. For more details please read the
 % sources of rrt.m, rrt_star.m and rrt_star_fn.m
 
-%% Setting random seed
+%% Step 4: Setting random seed
 %
 %   rand_seed = 40;
 %
@@ -52,7 +52,7 @@
 %   rand_seed = now;
 % 
 
-%% Choosing the class (model) we want 
+%% Step 5: Choosing the class (model) we want 
 % 
 %   variant = 'FNRedundantManipulator';
 %
@@ -62,7 +62,7 @@
 % *FNSimple2D* is a name of a class which contains all necessary methods
 % and fields in order to represent simple 2D Mobile Robot model.
 
-%% Rapidly-Exploring Random Tree
+%% Step 6: Rapidly-Exploring Random Tree (RRT)
 %
 %   rrt(map, max_iter, is_benchmark, rand_seed, variant);
 %
