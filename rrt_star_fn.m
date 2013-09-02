@@ -1,5 +1,23 @@
 function problem = rrt_star_fn(map, max_iter, max_nodes, is_benchmark, rand_seed, variant)
-% RRT*FN
+%RRT_STAR_FN -- RRT*FN is sampling-based algorithm. It is a new variant 
+% of RRT* algorithm,  which limits the number of nodes in the tree 
+% and hence decreases the memory needed for storing the tree. 
+% 
+% problem = RRT_STAR_FN(map, max_iter, max_nodes, is_benchmark, rand_seed, variant)
+% function returns the object of the respective class with the result
+%
+% map           -- struct with appropriate fields (developer of 
+%               the class provides more information on this topic)
+% max_iter      -- number of iteration to solve the problem
+% max_node      -- number of nodes in the tree
+% is_benchmark  -- if true saves snapshots of the tree in a special directory
+%               boolean variable
+% rand_seed     -- a random seed 
+% variant       -- what class to choose, class used defines the problem space
+% 
+%
+% for detailed information consult with the help of the _RRT*FN Toolbox_
+%
 % Olzhas Adiyatov
 % 05/26/2013
 

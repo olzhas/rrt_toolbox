@@ -1,4 +1,7 @@
 classdef GridBased2Dimrotate < handle
+    %
+    % CUDA GPU required for this class
+    %
     properties (SetAccess = private)
         tree                % Array stores position and angel information of states
         parent              % Array stores relations of nodes
