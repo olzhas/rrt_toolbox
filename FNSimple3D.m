@@ -47,8 +47,8 @@ classdef FNSimple3D < handle
             this.cost = zeros(1, max_nodes);
             this.cumcost = zeros(1,max_nodes);
             this.XY_BOUNDARY = zeros(4,1);
-            this.tree(:, 1) = map.start_point(1:2); % Start position
-            this.orientation(:, 1) = map.start_point(3); % Start orientation
+            this.tree(:, 1) = map.start_point; % Start position
+            this.orientation(:, 1) = pi / 4; % Start orientation
             this.manipulator(:, 1) = zeros(5,1);
             this.goal_point = map.goal_point;
             this.delta_goal_point = conf.delta_goal_point;
@@ -116,7 +116,7 @@ classdef FNSimple3D < handle
             this.XY_BOUNDARY = [this.obstacle.x_constraints this.obstacle.y_constraints];
         end
         
-        function collision = obstacle_collision(this, new_node_position)
+        function collision = obstacle_collision(this, new_node_position, nearest_node)
             collision = false;
             theta = new_node_position(3) * 360 / pi;
             if (mod(theta, 90) == 0)
@@ -136,10 +136,10 @@ classdef FNSimple3D < handle
                 vertex3 = [new_node_position(1) - cosd(theta)*this.L - sind(theta)*this.W new_node_position(2) - sind(theta)*this.L + cosd(theta)*this.W];
                 vertex4 = [new_node_position(1) - cosd(theta)*this.L + sind(theta)*this.W new_node_position(2) - sind(theta)*this.L - cosd(theta)*this.W];
                 
-                if isintersect(this.obstacle.output{obs_ind}, [vertex1; vertex2]) == 1 ...
-                        || isintersect(this.obstacle.output{obs_ind}, [vertex2; vertex3]) == 1 ...
-                        || isintersect(this.obstacle.output{obs_ind}, [vertex3; vertex4]) == 1 ...
-                        || isintersect(this.obstacle.output{obs_ind}, [vertex4; vertex1]) == 1
+                if isintersect_3dof(this.obstacle.output{obs_ind}, [vertex1; vertex2]) == 1 ...
+                        || isintersect_3dof(this.obstacle.output{obs_ind}, [vertex2; vertex3]) == 1 ...
+                        || isintersect_3dof(this.obstacle.output{obs_ind}, [vertex3; vertex4]) == 1 ...
+                        || isintersect_3dof(this.obstacle.output{obs_ind}, [vertex4; vertex1]) == 1
                     collision = true;
                     return;
                     %end
@@ -212,8 +212,7 @@ classdef FNSimple3D < handle
             %%% Find the optimal path to the goal
             % finding all the point which are in the desired region
             distances = zeros(this.nodes_added, 2);
-            distances(:, 1) = sum((this.tree(:,1:(this.nodes_added)) - repmat(this.goal_point(1:2)', 1, this.nodes_added)).^2) + ...
-                             ((this.orientation(1:this.nodes_added) - this.goal_point(3)).^2);
+            distances(:, 1) = sum((this.tree(:,1:(this.nodes_added)) - repmat(this.goal_point', 1, this.nodes_added)).^2);
             distances(:, 2) = 1:this.nodes_added;
             distances = sortrows(distances, 1);
             distances(:, 1) = distances(:, 1) <= (this.delta_goal_point ^ 2);
@@ -272,8 +271,7 @@ classdef FNSimple3D < handle
             %%% Find the optimal path to the goal
             % finding all the point which are in the desired region
             distances = zeros(this.nodes_added, 2);
-            distances(:, 1) = sum((this.tree(:,1:(this.nodes_added)) - repmat(this.goal_point(1:2)', 1, this.nodes_added)).^2) + ...
-                                ((this.orientation(1:this.nodes_added) - this.goal_point(3)).^2);
+            distances(:, 1) = sum((this.tree(:,1:(this.nodes_added)) - repmat(this.goal_point', 1, this.nodes_added)).^2);
             distances(:, 2) = 1:this.nodes_added;
             distances = sortrows(distances, 1);
             distances(:, 1) = distances(:, 1) <= this.delta_goal_point ^ 2;
@@ -319,8 +317,8 @@ classdef FNSimple3D < handle
                     if(drawn_nodes(current_index) == false || drawn_nodes(this.parent(current_index)) == false)
                         plot([this.tree(1,current_index);this.tree(1, this.parent(current_index))], ...
                             [this.tree(2, current_index);this.tree(2, this.parent(current_index))],'g-','LineWidth', 0.5);
-                        plot([this.tree(1,current_index);this.tree(1, this.parent(current_index))], ...
-                            [this.tree(2, current_index);this.tree(2, this.parent(current_index))],'+k');
+%                         plot([this.tree(1,current_index);this.tree(1, this.parent(current_index))], ...
+%                             [this.tree(2, current_index);this.tree(2, this.parent(current_index))],'+k');
                         drawn_nodes(current_index) = true;
                         
                     end

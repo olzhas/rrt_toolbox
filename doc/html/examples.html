@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>RRT*FN Toolbox Examples</title><meta name="generator" content="MATLAB 8.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-08-29"><meta name="DC.source" content="examples.m"><style type="text/css">
+      --><title>RRT*FN Toolbox Examples</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-09-03"><meta name="DC.source" content="examples.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -70,20 +70,23 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 <table style="width:100%;">
 <tr><td style="width:150px;"><img src="twodim_rrt_thumb.png"/></td><td><a href="twodim_rrt_example.html">2D Mobile point-like robot</a></td></tr>
 <tr><td><img src="redundant_thumb.png"/></td><td><a href="redundant_rrt_example.html">6 DOF Planar Redundant Manipulator</a></td></tr>
+<tr><td><img src="threedof_rrt_thumb.png"/></td><td><a href="threedof_rrt_example.html">3 DOF Mobile rectangular robot</a></td></tr>
 </table>
 <br/>
 <h1>RRT* Examples</h1>
 <table style="width:100%;">
 <tr><td style="width:150px;"><img src="twodim_rrtstar_thumb.png"/></td><td><a href="twodim_rrt_star_example.html">2D Mobile point-like robot</a></td></tr>
 <tr><td><img src="redundant_thumb.png"/></td><td><a href="redundant_rrt_star_example.html">6 DOF Planar Redundant Manipulator</a></td></tr>
+<tr><td><img src="threedof_rrt_star_thumb.png"/></td><td><a href="threedof_rrt_star_example.html">3 DOF Mobile rectangular robot</a></td></tr>
 </table>
 <br/>
 <h1>RRT*FN Examples</h1>
 <table style="width:100%;">
 <tr><td style="width:150px;"><img src="twodim_thumb.png"/></td><td><a href="twodim_rrt_star_fn_example.html">2D Mobile point-like robot</a></td></tr>
 <tr><td><img src="redundant_thumb.png"/></td><td><a href="redundant_rrt_star_fn_example.html">6 DOF Planar Redundant Manipulator</a></td></tr>
+<tr><td><img src="threedof_rrt_star_fn_thumb.png"/></td><td><a href="threedof_rrt_star_fn_example.html">3 DOF Mobile rectangular robot</a></td></tr>
 </table>
-</body></p><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2013a</a><br></p></div><!--
+</body></p><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2012b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% RRT*FN Toolbox Examples
 % <html><body>
@@ -91,18 +94,21 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 % <table style="width:100%;">
 % <tr><td style="width:150px;"><img src="twodim_rrt_thumb.png"/></td><td><a href="twodim_rrt_example.html">2D Mobile point-like robot</a></td></tr>
 % <tr><td><img src="redundant_thumb.png"/></td><td><a href="redundant_rrt_example.html">6 DOF Planar Redundant Manipulator</a></td></tr>
+% <tr><td><img src="threedof_rrt_thumb.png"/></td><td><a href="threedof_rrt_example.html">3 DOF Mobile rectangular robot</a></td></tr>
 % </table>
 % <br/>
 % <h1>RRT* Examples</h1>
 % <table style="width:100%;">
 % <tr><td style="width:150px;"><img src="twodim_rrtstar_thumb.png"/></td><td><a href="twodim_rrt_star_example.html">2D Mobile point-like robot</a></td></tr>
 % <tr><td><img src="redundant_thumb.png"/></td><td><a href="redundant_rrt_star_example.html">6 DOF Planar Redundant Manipulator</a></td></tr>
+% <tr><td><img src="threedof_rrt_star_thumb.png"/></td><td><a href="threedof_rrt_star_example.html">3 DOF Mobile rectangular robot</a></td></tr>
 % </table>
 % <br/>
 % <h1>RRT*FN Examples</h1>
 % <table style="width:100%;">
 % <tr><td style="width:150px;"><img src="twodim_thumb.png"/></td><td><a href="twodim_rrt_star_fn_example.html">2D Mobile point-like robot</a></td></tr>
 % <tr><td><img src="redundant_thumb.png"/></td><td><a href="redundant_rrt_star_fn_example.html">6 DOF Planar Redundant Manipulator</a></td></tr>
+% <tr><td><img src="threedof_rrt_star_fn_thumb.png"/></td><td><a href="threedof_rrt_star_fn_example.html">3 DOF Mobile rectangular robot</a></td></tr>
 % </table>
 % </body></html>
 
