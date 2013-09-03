@@ -111,14 +111,14 @@ if (is_benchmark)
     mkdir(dir_name);
     save([dir_name '/' ALGORITHM '_' MAP.name '_' num2str(MAX_NODES) '_of_' num2str(MAX_ITER) '_' datestr(now, 'HH-MM-SS') '.mat'], '-v7.3');
     set(gcf, 'Visible', 'off');
+    
+    % free memory, sometimes there is a memory leak, or matlab decides to
+    % free up memory later.
+    clear all;
+    clear('rrt.m');
+    
     %     problem.plot();
     %     saveas(gcf, [dir_name '\' ALGORITHM '_' MAP.name '_' num2str(MAX_NODES) '_of_' num2str(MAX_ITER) '_' datestr(now, 'HH-MM-SS') '.fig']);
 else
     problem.plot();
-end
-
-if is_benchmark
-    % free memory
-    clear all;
-    clear('rrt.m');
 end

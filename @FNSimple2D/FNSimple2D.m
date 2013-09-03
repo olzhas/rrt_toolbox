@@ -14,6 +14,7 @@ classdef FNSimple2D < handle
         nodes_added         % Keeps count of added nodes
         max_step            % The length of the maximum step while adding the node
         obstacle            % Obstacle information
+        dynamic_obstacle    % Dynamic Obstacles Information
         best_path_node      % The index of last node of the best path
         goal_reached
         %%% temporary variables
