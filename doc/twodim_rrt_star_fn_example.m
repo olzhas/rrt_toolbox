@@ -73,7 +73,7 @@
 
 %% Step 7: RRT*FN
 %
-%   rrt_star(map, max_iter, is_benchmark, rand_seed, variant);
+%   rrt_star_fn(map, max_iter, max_nodes, is_benchmark, rand_seed, variant);
 %
 % Line above runs RRT with given parameters. In addition, *rrt* function
 % returns the class object with a certain solution.
@@ -89,6 +89,7 @@
 %   
 %   map = struct('name', 'bench_june1.mat', 'start_point', [-12.5 -5.5], 'goal_point', [7 -3.65]);
 %   max_iter = 20e3;
+%   max_nodes = 3e3;
 %   is_benchmark = false;
 %   rand_seed = 40;
 %   variant = 'FNSimple2D';

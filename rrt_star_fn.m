@@ -14,7 +14,7 @@ function problem = rrt_star_fn(map, max_iter, max_nodes, is_benchmark, rand_seed
 %               boolean variable
 % rand_seed     -- a random seed 
 % variant       -- what class to choose, class used defines the problem space
-% 
+%
 %
 % for detailed information consult with the help of the _RRT*FN Toolbox_
 %
@@ -146,3 +146,7 @@ else
     problem.plot();
 end
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/master
