@@ -145,8 +145,3 @@ if (is_benchmark)
 else
     problem.plot();
 end
-
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/master
