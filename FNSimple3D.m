@@ -47,8 +47,8 @@ classdef FNSimple3D < handle
             this.cost = zeros(1, max_nodes);
             this.cumcost = zeros(1,max_nodes);
             this.XY_BOUNDARY = zeros(4,1);
-            this.tree(:, 1) = map.start_point;
-            this.orientation(:, 1) = 120 * pi / 360; %map.start_point;
+            this.tree(:, 1) = map.start_point(1:2); % Start position
+            this.orientation(:, 1) = map.start_point(3); % Start orientation
             this.manipulator(:, 1) = zeros(5,1);
             this.goal_point = map.goal_point;
             this.delta_goal_point = conf.delta_goal_point;
@@ -212,7 +212,8 @@ classdef FNSimple3D < handle
             %%% Find the optimal path to the goal
             % finding all the point which are in the desired region
             distances = zeros(this.nodes_added, 2);
-            distances(:, 1) = sum((this.tree(:,1:(this.nodes_added)) - repmat(this.goal_point', 1, this.nodes_added)).^2);
+            distances(:, 1) = sum((this.tree(:,1:(this.nodes_added)) - repmat(this.goal_point(1:2)', 1, this.nodes_added)).^2) + ...
+                             ((this.orientation(1:this.nodes_added) - this.goal_point(3)).^2);
             distances(:, 2) = 1:this.nodes_added;
             distances = sortrows(distances, 1);
             distances(:, 1) = distances(:, 1) <= (this.delta_goal_point ^ 2);
@@ -271,7 +272,8 @@ classdef FNSimple3D < handle
             %%% Find the optimal path to the goal
             % finding all the point which are in the desired region
             distances = zeros(this.nodes_added, 2);
-            distances(:, 1) = sum((this.tree(:,1:(this.nodes_added)) - repmat(this.goal_point', 1, this.nodes_added)).^2);
+            distances(:, 1) = sum((this.tree(:,1:(this.nodes_added)) - repmat(this.goal_point(1:2)', 1, this.nodes_added)).^2) + ...
+                                ((this.orientation(1:this.nodes_added) - this.goal_point(3)).^2);
             distances(:, 2) = 1:this.nodes_added;
             distances = sortrows(distances, 1);
             distances(:, 1) = distances(:, 1) <= this.delta_goal_point ^ 2;
