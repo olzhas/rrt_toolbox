@@ -31,7 +31,7 @@ rrt.m, rrt\_star.m, rrt\_star\_fn.m
 
 
 ## Authors
-- Olzhas Adiyatov
+- Olzhas Adiyatov oadiyatov[at]nu.edu.kz
 - Atakan Varol
 
 (c) 2013
