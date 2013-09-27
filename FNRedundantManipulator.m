@@ -666,7 +666,7 @@ classdef FNRedundantManipulator < handle
     
     methods(Static)
         function dist = euclidian_distance(src_pos, dest_pos)
-            dist = sqrt(sum((src_pos - dest_pos).^2));
+            dist = norm(src_pos - dest_pos);
         end
         function hCirc = plot_circle(x, y, r)
             t = 0:0.001:2*pi;
