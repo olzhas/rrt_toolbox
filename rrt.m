@@ -28,7 +28,7 @@ if nargin < 5
     
     % loading conf
     RAND_SEED   = 1;
-    MAX_ITER    = 2e3;
+    MAX_ITER    = 20e3;
     MAX_NODES   = MAX_ITER;
     
     % here you can specify what class to use, each class represent
