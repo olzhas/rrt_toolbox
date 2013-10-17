@@ -44,7 +44,7 @@ if nargin < 5
 %     MAP = struct('name', 'bench_redundant_3.mat', 'start_point', [0 0], 'goal_point', [35 35]);
     
     % do we have to benchmark?
-    is_benchmark = true;
+    is_benchmark = false;
 else
     MAX_NODES   = max_iter;
     MAX_ITER    = max_iter;
