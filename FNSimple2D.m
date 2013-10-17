@@ -207,7 +207,7 @@ classdef FNSimple2D < handle
         
         function position = steer(this, nearest_node, new_node_position)
             % if new node is very distant from the nearest node we go from the nearest node in the direction of a new node
-            if(this.euclidian_distance(new_node_position, this.tree(:, nearest_node)) > this.max_step)
+            if(norm(new_node_position - this.tree(:, nearest_node)) > this.max_step)
                 theta = atan((new_node_position(2) - this.tree(2, nearest_node))/(new_node_position(1) - this.tree(1, nearest_node)));
                 position = this.tree(:, nearest_node) ...
                     + [sign((new_node_position(1) - this.tree(1, nearest_node))) * this.max_step * cos(theta); ...
@@ -270,7 +270,7 @@ classdef FNSimple2D < handle
             this.tree(:, this.nodes_added) = new_node_position;         % adding new node position to the tree
             this.parent(this.nodes_added) = parent_node_ind;            % adding information about parent-children information
             this.children(parent_node_ind) = this.children(parent_node_ind) + 1;
-            this.cost(this.nodes_added) = this.euclidian_distance(this.tree(:, parent_node_ind), new_node_position);  % not that important
+            this.cost(this.nodes_added) = norm(this.tree(:, parent_node_ind) - new_node_position);  % not that important
             this.cumcost(this.nodes_added) = this.cumcost(parent_node_ind) + this.cost(this.nodes_added);   % cummulative cost
             new_node_ind = this.nodes_added;
             
@@ -407,9 +407,9 @@ classdef FNSimple2D < handle
             % finds the node with minimal cummulative cost node from the root of
             % the tree. i.e. find the cheapest path end node.
             min_node_ind = nearest_node;
-            min_cumcost = this.cumcost(nearest_node) + this.euclidian_distance(this.tree(:, nearest_node), new_node_position);
+            min_cumcost = this.cumcost(nearest_node) + norm(this.tree(:, nearest_node)- new_node_position);
             for ind=1:numel(neighbors)
-                temp_cumcost = this.cumcost(neighbors(ind)) + this.euclidian_distance(this.tree(:, neighbors(ind)), new_node_position);
+                temp_cumcost = this.cumcost(neighbors(ind)) + norm(this.tree(:, neighbors(ind)) - new_node_position);
                 if temp_cumcost < min_cumcost && ~this.obstacle_collision(new_node_position, neighbors(ind))
                     min_cumcost = temp_cumcost;
                     min_node_ind = neighbors(ind);
@@ -426,7 +426,7 @@ classdef FNSimple2D < handle
                 if (min_node_ind == neighbors(ind))
                     continue;
                 end
-                temp_cost = this.cumcost(new_node_ind) + this.euclidian_distance(this.tree(:, neighbors(ind)), this.tree(:, new_node_ind));
+                temp_cost = this.cumcost(new_node_ind) + norm(this.tree(:, neighbors(ind)) - this.tree(:, new_node_ind));
                 if (temp_cost < this.cumcost(neighbors(ind)) && ...
                         ~this.obstacle_collision(this.tree(:, new_node_ind), neighbors(ind)))
                     
@@ -498,7 +498,7 @@ classdef FNSimple2D < handle
             this.tree(:, reused_node_ind) = new_node_position;
             this.parent(reused_node_ind) = nearest_node;
             this.children(nearest_node) = this.children(nearest_node) + 1;
-            this.cost(reused_node_ind) = this.euclidian_distance(this.tree(:, nearest_node), new_node_position);
+            this.cost(reused_node_ind) = norm(this.tree(:, nearest_node) - new_node_position);
             this.cumcost(reused_node_ind) = this.cumcost(nearest_node) + this.cost(reused_node_ind);
         end
         
@@ -582,9 +582,6 @@ classdef FNSimple2D < handle
         end
     end
     methods(Static)
-        function dist = euclidian_distance(src_pos, dest_pos)
-            dist = norm(src_pos - dest_pos);
-        end
         function plot_circle(x, y, r)
             t = 0:0.001:2*pi;
             cir_x = r*cos(t) + x;
