@@ -17,6 +17,16 @@ classdef FNSimple2D < handle
         dynamic_obstacle    % Dynamic Obstacles Information
         best_path_node      % The index of last node of the best path
         goal_reached
+        max_nodes 
+        %%% Binning for faster neighbor search
+        % bins are square
+        bin_size
+        bin
+        bin_x
+        bin_y
+        bin_offset
+        nbins
+        bin_ind
         %%% temporary variables
         compare_table
         index
@@ -27,6 +37,7 @@ classdef FNSimple2D < handle
         % class constructor
         function this = FNSimple2D(rand_seed, max_nodes, map, conf)
             max_nodes = int32(max_nodes);
+            this.max_nodes = max_nodes;
             rng(rand_seed);
             this.tree = zeros(2, max_nodes);
             this.parent = zeros(1, max_nodes);
@@ -50,6 +61,115 @@ classdef FNSimple2D < handle
             this.index = zeros(1, max_nodes);
             this.list = 1:max_nodes;
             this.num_rewired = 0;
+            
+            this.bin_ind = zeros(10, max_nodes);
+            
+            this.bin_size = conf.bin_size;
+            this.bin_x = ceil((this.XY_BOUNDARY(2) - this.XY_BOUNDARY(1))/this.bin_size);
+            this.bin_y = ceil((this.XY_BOUNDARY(4) - this.XY_BOUNDARY(2))/this.bin_size);
+            
+            delta = this.bin_size/100;
+            left_edge = int32((this.XY_BOUNDARY(1) + delta) / this.bin_size - 0.5);
+            bottom_edge = int32((this.XY_BOUNDARY(3) + delta) / this.bin_size - 0.5);
+            right_edge = int32((this.XY_BOUNDARY(2) - delta) / this.bin_size - 0.5);
+            top_edge = int32((this.XY_BOUNDARY(4) - delta) / this.bin_size - 0.5);
+            
+            this.bin_offset = -(left_edge + bottom_edge*this.bin_x) + 1;
+            this.nbins = (right_edge + top_edge*this.bin_x) - (left_edge + bottom_edge*this.bin_x)+ 1;
+            this.bin = repmat(struct('nodes', zeros(1, int32(max_nodes/5)), 'last', 0), 1, this.nbins);
+            
+            % add root node into bin
+            x_comp = int32(map.start_point(1) / this.bin_size - 0.5);
+            y_comp = int32(map.start_point(2) / this.bin_size - 0.5);
+            cur_bin = x_comp + y_comp*this.bin_x + this.bin_offset;
+            this.bin(cur_bin).last = this.bin(cur_bin).last + 1;
+            this.bin(cur_bin).nodes(this.bin(cur_bin).last) = 1;
+            this.bin_ind(end,1) = this.bin_ind(end, 1) + 1;
+            this.bin_ind(this.bin_ind(end,1),1) = cur_bin;
+            
+            %% placing nodes in additional bins
+            radius = this.delta_near;
+            x_left = x_comp;
+            x_right = x_comp;
+            y_top = y_comp;
+            y_bottom = y_comp;
+            if map.start_point(1) - radius >= this.XY_BOUNDARY(1)
+                x_left = int32((map.start_point(1) - radius)/this.bin_size - 0.5);
+            end
+            if map.start_point(1) + radius <= this.XY_BOUNDARY(2)
+                x_right = int32((map.start_point(1) + radius)/this.bin_size - 0.5);
+            end
+            if map.start_point(2) - radius >= this.XY_BOUNDARY(3)
+                y_top = int32((map.start_point(2) + radius)/this.bin_size - 0.5);
+            end
+            if map.start_point(2) + radius <= this.XY_BOUNDARY(4)
+                y_bottom = int32((map.start_point(2) - radius)/this.bin_size - 0.5);
+            end
+            
+            if x_comp > x_left && cur_bin - 1 > 0
+                this.bin(cur_bin-1).last = this.bin(cur_bin-1).last + 1;
+                this.bin(cur_bin-1).nodes(this.bin(cur_bin-1).last) = 1;
+                
+                this.bin_ind(end,1) = this.bin_ind(end, 1) + 1;
+                this.bin_ind(this.bin_ind(end,1),1) = cur_bin-1;
+            end
+            
+            if x_comp < x_right && cur_bin + 1 < this.nbins
+                this.bin(cur_bin+1).last = this.bin(cur_bin+1).last + 1;
+                this.bin(cur_bin+1).nodes(this.bin(cur_bin+1).last) = 1;
+                
+                this.bin_ind(end,1) = this.bin_ind(end, 1) + 1;
+                this.bin_ind(this.bin_ind(end,1),1) = cur_bin+1;
+            end
+            
+            if y_comp < y_top
+                if cur_bin+this.bin_x <= this.nbins
+                    this.bin(cur_bin+this.bin_x).last = this.bin(cur_bin+this.bin_x).last + 1;
+                    this.bin(cur_bin+this.bin_x).nodes(this.bin(cur_bin+this.bin_x).last) = 1;
+                    
+                    this.bin_ind(end,1) = this.bin_ind(end, 1) + 1;
+                    this.bin_ind(this.bin_ind(end,1),1) = cur_bin+this.bin_x;
+                    if x_comp > x_left
+                        this.bin(cur_bin-1+this.bin_x).last = this.bin(cur_bin-1+this.bin_x).last + 1;
+                        this.bin(cur_bin-1+this.bin_x).nodes(this.bin(cur_bin-1+this.bin_x).last) = 1;
+                        
+                        this.bin_ind(end,1) = this.bin_ind(end, 1) + 1;
+                        this.bin_ind(this.bin_ind(end,1),1) = cur_bin-1+this.bin_x;
+                    end
+                    if x_comp < x_right && cur_bin+this.bin_x+1 <= this.nbins
+                        this.bin(cur_bin+1+this.bin_x).last = this.bin(cur_bin+1+this.bin_x).last + 1;
+                        this.bin(cur_bin+1+this.bin_x).nodes(this.bin(cur_bin+1+this.bin_x).last) = 1;
+                        
+                        this.bin_ind(end,1) = this.bin_ind(end, 1) + 1;
+                        this.bin_ind(this.bin_ind(end,1),1) = cur_bin+1+this.bin_x;
+                    end
+                end
+            end
+            
+            if y_comp > y_bottom
+                if cur_bin-this.bin_x > 0
+                    this.bin(cur_bin-this.bin_x).last = this.bin(cur_bin-this.bin_x).last + 1;
+                    this.bin(cur_bin-this.bin_x).nodes(this.bin(cur_bin-this.bin_x).last) = 1;
+                    
+                    this.bin_ind(end,1) = this.bin_ind(end, 1) + 1;
+                    this.bin_ind(this.bin_ind(end,1),1) = cur_bin-this.bin_x;
+                    
+                    if x_comp > x_left && cur_bin-1-this.bin_x > 0
+                        this.bin(cur_bin-1-this.bin_x).last = this.bin(cur_bin-1-this.bin_x).last + 1;
+                        this.bin(cur_bin-1-this.bin_x).nodes(this.bin(cur_bin-1-this.bin_x).last) = 1;
+                        
+                        this.bin_ind(end,1) = this.bin_ind(end, 1) + 1;
+                        this.bin_ind(this.bin_ind(end,1),1) = cur_bin-1-this.bin_x;
+                    end
+                    if x_comp < x_right
+                        this.bin(cur_bin+1-this.bin_x).last = this.bin(cur_bin+1-this.bin_x).last + 1;
+                        this.bin(cur_bin+1-this.bin_x).nodes(this.bin(cur_bin+1-this.bin_x).last) = 1;
+                        
+                        this.bin_ind(end,1) = this.bin_ind(end, 1) + 1;
+                        this.bin_ind(this.bin_ind(end,1),1) = cur_bin+1-this.bin_x;
+                    end
+                end
+            end
         end
         
         function position = sample(this)
@@ -59,18 +179,37 @@ classdef FNSimple2D < handle
                 + [this.XY_BOUNDARY(1);this.XY_BOUNDARY(3)];
         end
         
-        function node_index = nearest(this, new_node)
-            % find the nearest node to the given node, euclidian distance
-            % is used
-            this.compare_table(1:(this.nodes_added)) = sum((this.tree(:, 1:(this.nodes_added)) - repmat(new_node,1,this.nodes_added)).^2);
-            [this.compare_table(1:(this.nodes_added)), this.index(1:(this.nodes_added))] = sort(this.compare_table(1:(this.nodes_added)));
-            node_index = this.index(1);
-            return;
+        function node_index = nearest(this, new_node_position)
+            radius = this.delta_near;
+            % % binning chunk of code
+            x_comp = int32(new_node_position(1) / this.bin_size - 0.5);
+            y_comp = int32(new_node_position(2) / this.bin_size - 0.5);
+            
+            cur_bin = x_comp + y_comp*this.bin_x + this.bin_offset;
+            
+            num_nbors = this.bin(cur_bin).last;
+            
+            if num_nbors < 20
+                nbors = 1:this.nodes_added;
+                num_nbors = this.nodes_added;
+            else
+                nbors = this.bin(cur_bin).nodes(1:num_nbors);
+            end
+            
+            this.compare_table(1:num_nbors) = sum((this.tree(:, nbors) - repmat(new_node_position,1,num_nbors)).^2);
+            % just in case
+            if this.free_nodes_ind > 1
+                this.compare_table(this.free_nodes(1:(this.free_nodes_ind-1))) = intmax;
+            end
+            [this.compare_table(1:num_nbors), this.index(1:num_nbors)] = min(this.compare_table(1:num_nbors));
+            temp = nbors(this.index((this.compare_table(1:num_nbors) <= radius^2*1.00001) & (this.compare_table(1:num_nbors) > 0 )));
+            
+            node_index = nbors(this.index(1));
         end
         
         function position = steer(this, nearest_node, new_node_position)
             % if new node is very distant from the nearest node we go from the nearest node in the direction of a new node
-            if(this.euclidian_distance(new_node_position, this.tree(:, nearest_node)) > this.max_step)
+            if(norm(new_node_position - this.tree(:, nearest_node)) > this.max_step)
                 theta = atan((new_node_position(2) - this.tree(2, nearest_node))/(new_node_position(1) - this.tree(1, nearest_node)));
                 position = this.tree(:, nearest_node) ...
                     + [sign((new_node_position(1) - this.tree(1, nearest_node))) * this.max_step * cos(theta); ...
@@ -116,14 +255,14 @@ classdef FNSimple2D < handle
             for obs_ind = 1:this.obstacle.num
                 % circle as a bounding shape test
                 if sum((this.obstacle.cir_center{obs_ind} - new_node_position) .^2) <= this.obstacle.r_sqr(obs_ind) || ...
-                    sum((this.obstacle.cir_center{obs_ind} - this.tree(:,node_index)) .^2) <= this.obstacle.r_sqr(obs_ind)
+                        sum((this.obstacle.cir_center{obs_ind} - this.tree(:,node_index)) .^2) <= this.obstacle.r_sqr(obs_ind)
                     % simple stupid collision detection based on line intersection
                     if isintersect(this.obstacle.output{obs_ind}, [this.tree(:, node_index) new_node_position]', ...
                             this.obstacle.m{obs_ind}, this.obstacle.b{obs_ind}, this.obstacle.vert_num(obs_ind)) == 1
                         collision = true;
                         return;
                     end
-                end           
+                end
             end
         end
         
@@ -133,9 +272,105 @@ classdef FNSimple2D < handle
             this.tree(:, this.nodes_added) = new_node_position;         % adding new node position to the tree
             this.parent(this.nodes_added) = parent_node_ind;            % adding information about parent-children information
             this.children(parent_node_ind) = this.children(parent_node_ind) + 1;
-            this.cost(this.nodes_added) = this.euclidian_distance(this.tree(:, parent_node_ind), new_node_position);  % not that important
+            this.cost(this.nodes_added) = norm(this.tree(:, parent_node_ind) - new_node_position);  % not that important
             this.cumcost(this.nodes_added) = this.cumcost(parent_node_ind) + this.cost(this.nodes_added);   % cummulative cost
             new_node_ind = this.nodes_added;
+            
+            radius = this.delta_near;
+            
+            x_comp = int32(new_node_position(1) / this.bin_size - 0.5);
+            y_comp = int32(new_node_position(2) / this.bin_size - 0.5);
+            
+            cur_bin = x_comp + y_comp*this.bin_x + this.bin_offset;
+            
+            this.bin(cur_bin).last = this.bin(cur_bin).last + 1;
+            this.bin(cur_bin).nodes(this.bin(cur_bin).last) = new_node_ind;
+            
+            this.bin_ind(end,new_node_ind) = this.bin_ind(end, new_node_ind) + 1;
+            this.bin_ind(this.bin_ind(end,new_node_ind),new_node_ind) = cur_bin;
+            
+            %% placing nodes in additional bins
+            x_left = x_comp;
+            x_right = x_comp;
+            y_top = y_comp;
+            y_bottom = y_comp;
+            if new_node_position(1) - radius >= this.XY_BOUNDARY(1)
+                x_left = int32((new_node_position(1) - radius)/this.bin_size - 0.5);
+            end
+            if new_node_position(1) + radius <= this.XY_BOUNDARY(2)
+                x_right = int32((new_node_position(1) + radius)/this.bin_size - 0.5);
+            end
+            if new_node_position(2) - radius >= this.XY_BOUNDARY(3)
+                y_top = int32((new_node_position(2) + radius)/this.bin_size - 0.5);
+            end
+            if new_node_position(2) + radius <= this.XY_BOUNDARY(4)
+                y_bottom = int32((new_node_position(2) - radius)/this.bin_size - 0.5);
+            end
+            
+            if x_comp > x_left && cur_bin - 1 > 0
+                this.bin(cur_bin-1).last = this.bin(cur_bin-1).last + 1;
+                this.bin(cur_bin-1).nodes(this.bin(cur_bin-1).last) = new_node_ind;
+                
+                this.bin_ind(end,new_node_ind) = this.bin_ind(end, new_node_ind) + 1;
+                this.bin_ind(this.bin_ind(end,new_node_ind),new_node_ind) = cur_bin-1;
+            end
+            
+            if x_comp < x_right && cur_bin + 1 < this.nbins
+                this.bin(cur_bin+1).last = this.bin(cur_bin+1).last + 1;
+                this.bin(cur_bin+1).nodes(this.bin(cur_bin+1).last) = new_node_ind;
+                
+                this.bin_ind(end,new_node_ind) = this.bin_ind(end, new_node_ind) + 1;
+                this.bin_ind(this.bin_ind(end,new_node_ind),new_node_ind) = cur_bin+1;
+            end
+            
+            if y_comp < y_top
+                if cur_bin+this.bin_x <= this.nbins
+                    this.bin(cur_bin+this.bin_x).last = this.bin(cur_bin+this.bin_x).last + 1;
+                    this.bin(cur_bin+this.bin_x).nodes(this.bin(cur_bin+this.bin_x).last) = new_node_ind;
+                    
+                    this.bin_ind(end,new_node_ind) = this.bin_ind(end, new_node_ind) + 1;
+                    this.bin_ind(this.bin_ind(end,new_node_ind),new_node_ind) = cur_bin+this.bin_x;
+                    if x_comp > x_left
+                        this.bin(cur_bin-1+this.bin_x).last = this.bin(cur_bin-1+this.bin_x).last + 1;
+                        this.bin(cur_bin-1+this.bin_x).nodes(this.bin(cur_bin-1+this.bin_x).last) = new_node_ind;
+                        
+                        this.bin_ind(end,new_node_ind) = this.bin_ind(end, new_node_ind) + 1;
+                        this.bin_ind(this.bin_ind(end,new_node_ind),new_node_ind) = cur_bin-1+this.bin_x;
+                    end
+                    if x_comp < x_right && cur_bin+this.bin_x+1 <= this.nbins
+                        this.bin(cur_bin+1+this.bin_x).last = this.bin(cur_bin+1+this.bin_x).last + 1;
+                        this.bin(cur_bin+1+this.bin_x).nodes(this.bin(cur_bin+1+this.bin_x).last) = new_node_ind;
+                        
+                        this.bin_ind(end,new_node_ind) = this.bin_ind(end, new_node_ind) + 1;
+                        this.bin_ind(this.bin_ind(end,new_node_ind),new_node_ind) = cur_bin+1+this.bin_x;
+                    end
+                end
+            end
+            
+            if y_comp > y_bottom
+                if cur_bin-this.bin_x > 0
+                    this.bin(cur_bin-this.bin_x).last = this.bin(cur_bin-this.bin_x).last + 1;
+                    this.bin(cur_bin-this.bin_x).nodes(this.bin(cur_bin-this.bin_x).last) = new_node_ind;
+                    
+                    this.bin_ind(end,new_node_ind) = this.bin_ind(end, new_node_ind) + 1;
+                    this.bin_ind(this.bin_ind(end,new_node_ind),new_node_ind) = cur_bin-this.bin_x;
+                    
+                    if x_comp > x_left && cur_bin-1-this.bin_x > 0
+                        this.bin(cur_bin-1-this.bin_x).last = this.bin(cur_bin-1-this.bin_x).last + 1;
+                        this.bin(cur_bin-1-this.bin_x).nodes(this.bin(cur_bin-1-this.bin_x).last) = new_node_ind;
+                        
+                        this.bin_ind(end,new_node_ind) = this.bin_ind(end, new_node_ind) + 1;
+                        this.bin_ind(this.bin_ind(end,new_node_ind),new_node_ind) = cur_bin-1-this.bin_x;
+                    end
+                    if x_comp < x_right
+                        this.bin(cur_bin+1-this.bin_x).last = this.bin(cur_bin+1-this.bin_x).last + 1;
+                        this.bin(cur_bin+1-this.bin_x).nodes(this.bin(cur_bin+1-this.bin_x).last) = new_node_ind;
+                        
+                        this.bin_ind(end,new_node_ind) = this.bin_ind(end, new_node_ind) + 1;
+                        this.bin_ind(this.bin_ind(end,new_node_ind),new_node_ind) = cur_bin+1-this.bin_x;
+                    end
+                end
+            end
         end
         
         %%% RRT* specific functions
@@ -143,23 +378,43 @@ classdef FNSimple2D < handle
         function neighbor_nodes = neighbors(this, new_node_position, nearest_node_ind)
             % seeks for neighbors and returns indices of neighboring nodes
             radius = this.delta_near;
-            this.compare_table(1:(this.nodes_added)) = sum((this.tree(:, 1:(this.nodes_added)) - repmat(new_node_position,1,this.nodes_added)).^2);
-            [this.compare_table(1:(this.nodes_added)), this.index(1:(this.nodes_added))] = sort(this.compare_table(1:(this.nodes_added)));
-            temp = this.index((this.compare_table(1:(this.nodes_added)) <= radius^2) & (this.compare_table(1:(this.nodes_added)) > 0 ));
+            % % binning chunk of code
+            x_comp = int32(new_node_position(1) / this.bin_size - 0.5);
+            y_comp = int32(new_node_position(2) / this.bin_size - 0.5);
+            
+            cur_bin = x_comp + y_comp*this.bin_x + this.bin_offset;
+            
+            num_nbors = this.bin(cur_bin).last;
+            
+            if num_nbors < 20
+                nbors = 1:this.nodes_added;
+                num_nbors = this.nodes_added;
+            else
+                nbors = this.bin(cur_bin).nodes(1:num_nbors);
+            end
+            
+            this.compare_table(1:num_nbors) = sum((this.tree(:, nbors) - repmat(new_node_position,1,num_nbors)).^2);
+            % just in case
+            if this.free_nodes_ind > 1
+                this.compare_table(this.free_nodes(1:(this.free_nodes_ind-1))) = intmax;
+            end
+            [this.compare_table(1:num_nbors), this.index(1:num_nbors)] = sort(this.compare_table(1:num_nbors));
+            temp = nbors(this.index((this.compare_table(1:num_nbors) <= radius^2*1.00001) & (this.compare_table(1:num_nbors) > 0 )));
             neighbor_nodes = temp;
-            %neighbor_nodes = setdiff(temp, nearest_node_ind);
+            % neighbor_nodes = setdiff(temp, nearest_node_ind);
+            
         end
         
         function min_node_ind = chooseParent(this, neighbors, nearest_node, new_node_position)
             % finds the node with minimal cummulative cost node from the root of
             % the tree. i.e. find the cheapest path end node.
             min_node_ind = nearest_node;
-            min_cumcost = this.cumcost(nearest_node) + this.euclidian_distance(this.tree(:, nearest_node), new_node_position);
+            min_cumcost = this.cumcost(nearest_node) + norm(this.tree(:, nearest_node)- new_node_position);
             for ind=1:numel(neighbors)
-                temp_cumcost = this.cumcost(neighbors(ind)) + this.euclidian_distance(this.tree(:, neighbors(ind)), new_node_position);
+                temp_cumcost = this.cumcost(neighbors(ind)) + norm(this.tree(:, neighbors(ind)) - new_node_position);
                 if temp_cumcost < min_cumcost && ~this.obstacle_collision(new_node_position, neighbors(ind))
-                        min_cumcost = temp_cumcost;
-                        min_node_ind = neighbors(ind);
+                    min_cumcost = temp_cumcost;
+                    min_node_ind = neighbors(ind);
                 end
             end
         end
@@ -168,20 +423,38 @@ classdef FNSimple2D < handle
             % method looks thru all neighbors(except min_node_ind) and
             % seeks and reconnects neighbors to the new node if it is
             % cheaper
+            queue = zeros(1, int32(this.max_nodes/5));
             for ind = 1:numel(neighbors)
                 % omit
                 if (min_node_ind == neighbors(ind))
                     continue;
                 end
-                temp_cost = this.cumcost(new_node_ind) + this.euclidian_distance(this.tree(:, neighbors(ind)), this.tree(:, new_node_ind));
+                temp_cost = this.cumcost(new_node_ind) + norm(this.tree(:, neighbors(ind)) - this.tree(:, new_node_ind));
                 if (temp_cost < this.cumcost(neighbors(ind)) && ...
                         ~this.obstacle_collision(this.tree(:, new_node_ind), neighbors(ind)))
                     
-                    this.cumcost(neighbors(ind)) = temp_cost;
+                    %this.cumcost(neighbors(ind)) = temp_cost;
                     this.children(this.parent(neighbors(ind))) = this.children(this.parent(neighbors(ind))) - 1;
                     this.parent(neighbors(ind)) = new_node_ind;
                     this.children(new_node_ind) = this.children(new_node_ind) + 1;
                     this.num_rewired = this.num_rewired + 1;
+                    
+                    bottom = 0;
+                    top = 0;
+                    bottom = bottom + 1;
+                    queue(bottom) = neighbors(ind);
+                    delta_cost = temp_cost - this.cumcost(neighbors(ind));
+                    
+                    while top < bottom
+                        top = top+1;
+                        cur = queue(top);
+                        this.cumcost(cur) = this.cumcost(cur)+delta_cost;
+                        kids = this.list(this.parent == cur);
+                        for k_ind = 1:numel(kids)
+                            bottom = bottom + 1;
+                            queue(bottom) = kids(k_ind);
+                        end
+                    end           
                 end
             end
         end
@@ -229,6 +502,12 @@ classdef FNSimple2D < handle
             this.tree(:, node_to_remove) = [intmax; intmax];
             this.free_nodes(this.free_nodes_ind) = node_to_remove;
             this.free_nodes_ind = this.free_nodes_ind + 1;
+            
+            for ind=1:this.bin_ind(end,node_to_remove)
+                upd = setdiff(this.bin(this.bin_ind(ind, node_to_remove)).nodes(1:this.bin(this.bin_ind(ind, node_to_remove)).last), node_to_remove);
+                this.bin(this.bin_ind(ind, node_to_remove)).nodes(1:numel(upd)) = upd;
+            end
+            this.bin_ind(end,node_to_remove) = 0;
         end
         
         function reused_node_ind = reuse_node(this, nearest_node, new_node_position)
@@ -242,8 +521,104 @@ classdef FNSimple2D < handle
             this.tree(:, reused_node_ind) = new_node_position;
             this.parent(reused_node_ind) = nearest_node;
             this.children(nearest_node) = this.children(nearest_node) + 1;
-            this.cost(reused_node_ind) = this.euclidian_distance(this.tree(:, nearest_node), new_node_position);
+            this.cost(reused_node_ind) = norm(this.tree(:, nearest_node) - new_node_position);
             this.cumcost(reused_node_ind) = this.cumcost(nearest_node) + this.cost(reused_node_ind);
+            
+            radius = this.delta_near;
+            
+            x_comp = int32(new_node_position(1) / this.bin_size - 0.5);
+            y_comp = int32(new_node_position(2) / this.bin_size - 0.5);
+            
+            cur_bin = x_comp + y_comp*this.bin_x + this.bin_offset;
+            
+            this.bin(cur_bin).last = this.bin(cur_bin).last + 1;
+            this.bin(cur_bin).nodes(this.bin(cur_bin).last) = reused_node_ind;
+            
+            this.bin_ind(end,reused_node_ind) = this.bin_ind(end, reused_node_ind) + 1;
+            this.bin_ind(this.bin_ind(end, reused_node_ind), reused_node_ind) = cur_bin;
+            
+            %% placing nodes in additional bins
+            x_left = x_comp;
+            x_right = x_comp;
+            y_top = y_comp;
+            y_bottom = y_comp;
+            if new_node_position(1) - radius >= this.XY_BOUNDARY(1)
+                x_left = int32((new_node_position(1) - radius)/this.bin_size - 0.5);
+            end
+            if new_node_position(1) + radius <= this.XY_BOUNDARY(2)
+                x_right = int32((new_node_position(1) + radius)/this.bin_size - 0.5);
+            end
+            if new_node_position(2) - radius >= this.XY_BOUNDARY(3)
+                y_top = int32((new_node_position(2) + radius)/this.bin_size - 0.5);
+            end
+            if new_node_position(2) + radius <= this.XY_BOUNDARY(4)
+                y_bottom = int32((new_node_position(2) - radius)/this.bin_size - 0.5);
+            end
+            
+            if x_comp > x_left && cur_bin - 1 > 0
+                this.bin(cur_bin-1).last = this.bin(cur_bin-1).last + 1;
+                this.bin(cur_bin-1).nodes(this.bin(cur_bin-1).last) = reused_node_ind;
+                
+                this.bin_ind(end,reused_node_ind) = this.bin_ind(end, reused_node_ind) + 1;
+                this.bin_ind(this.bin_ind(end,reused_node_ind),reused_node_ind) = cur_bin-1;
+            end
+            
+            if x_comp < x_right && cur_bin + 1 < this.nbins
+                this.bin(cur_bin+1).last = this.bin(cur_bin+1).last + 1;
+                this.bin(cur_bin+1).nodes(this.bin(cur_bin+1).last) = reused_node_ind;
+                
+                this.bin_ind(end,reused_node_ind) = this.bin_ind(end, reused_node_ind) + 1;
+                this.bin_ind(this.bin_ind(end, reused_node_ind), reused_node_ind) = cur_bin+1;
+            end
+            
+            if y_comp < y_top
+                if cur_bin+this.bin_x <= this.nbins
+                    this.bin(cur_bin+this.bin_x).last = this.bin(cur_bin+this.bin_x).last + 1;
+                    this.bin(cur_bin+this.bin_x).nodes(this.bin(cur_bin+this.bin_x).last) = reused_node_ind;
+                    
+                    this.bin_ind(end,reused_node_ind) = this.bin_ind(end, reused_node_ind) + 1;
+                    this.bin_ind(this.bin_ind(end,reused_node_ind),reused_node_ind) = cur_bin+this.bin_x;
+                    if x_comp > x_left
+                        this.bin(cur_bin-1+this.bin_x).last = this.bin(cur_bin-1+this.bin_x).last + 1;
+                        this.bin(cur_bin-1+this.bin_x).nodes(this.bin(cur_bin-1+this.bin_x).last) = reused_node_ind;
+                        
+                        this.bin_ind(end,reused_node_ind) = this.bin_ind(end, reused_node_ind) + 1;
+                        this.bin_ind(this.bin_ind(end,reused_node_ind),reused_node_ind) = cur_bin-1+this.bin_x;
+                    end
+                    if x_comp < x_right && cur_bin+this.bin_x+1 <= this.nbins
+                        this.bin(cur_bin+1+this.bin_x).last = this.bin(cur_bin+1+this.bin_x).last + 1;
+                        this.bin(cur_bin+1+this.bin_x).nodes(this.bin(cur_bin+1+this.bin_x).last) = reused_node_ind;
+                        
+                        this.bin_ind(end,reused_node_ind) = this.bin_ind(end, reused_node_ind) + 1;
+                        this.bin_ind(this.bin_ind(end,reused_node_ind),reused_node_ind) = cur_bin+1+this.bin_x;
+                    end
+                end
+            end
+            
+            if y_comp > y_bottom
+                if cur_bin-this.bin_x > 0
+                    this.bin(cur_bin-this.bin_x).last = this.bin(cur_bin-this.bin_x).last + 1;
+                    this.bin(cur_bin-this.bin_x).nodes(this.bin(cur_bin-this.bin_x).last) = reused_node_ind;
+                    
+                    this.bin_ind(end,reused_node_ind) = this.bin_ind(end, reused_node_ind) + 1;
+                    this.bin_ind(this.bin_ind(end,reused_node_ind),reused_node_ind) = cur_bin-this.bin_x;
+                    
+                    if x_comp > x_left && cur_bin-1-this.bin_x > 0
+                        this.bin(cur_bin-1-this.bin_x).last = this.bin(cur_bin-1-this.bin_x).last + 1;
+                        this.bin(cur_bin-1-this.bin_x).nodes(this.bin(cur_bin-1-this.bin_x).last) = reused_node_ind;
+                        
+                        this.bin_ind(end,reused_node_ind) = this.bin_ind(end, reused_node_ind) + 1;
+                        this.bin_ind(this.bin_ind(end,reused_node_ind),reused_node_ind) = cur_bin-1-this.bin_x;
+                    end
+                    if x_comp < x_right
+                        this.bin(cur_bin+1-this.bin_x).last = this.bin(cur_bin+1-this.bin_x).last + 1;
+                        this.bin(cur_bin+1-this.bin_x).nodes(this.bin(cur_bin+1-this.bin_x).last) = reused_node_ind;
+                        
+                        this.bin_ind(end,reused_node_ind) = this.bin_ind(end, reused_node_ind) + 1;
+                        this.bin_ind(this.bin_ind(end,reused_node_ind), reused_node_ind) = cur_bin+1-this.bin_x;
+                    end
+                end
+            end
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%
@@ -326,9 +701,6 @@ classdef FNSimple2D < handle
         end
     end
     methods(Static)
-        function dist = euclidian_distance(src_pos, dest_pos)
-            dist = norm(src_pos - dest_pos);
-        end
         function plot_circle(x, y, r)
             t = 0:0.001:2*pi;
             cir_x = r*cos(t) + x;
