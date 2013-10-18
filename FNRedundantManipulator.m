@@ -506,14 +506,12 @@ classdef FNRedundantManipulator < handle
         
         function cost = calc_cost_euclidian(this, from_ind, dest_node)
             % square root is not taken
-            temp_delta = this.tree.position(:, :, from_ind) - dest_node;
-            cost = sum((sum(temp_delta.^2, 2)));
+            cost = norm(this.tree.position(:, :, from_ind) - dest_node, 'fro');
         end
         
         function cost = calc_cost_angle(this, from_ind, dest_node)
             % square root is not taken
-            temp_delta = this.tree.angle(:, from_ind) - dest_node;
-            cost = sum((sum(temp_delta.^2, 2)));
+            cost = norm(this.tree.angle(:, from_ind) - dest_node, 'fro');
         end
         
         
@@ -661,13 +659,9 @@ classdef FNRedundantManipulator < handle
             this.cost(reused_node_ind) = this.calc_cost_euclidian(parent_node_ind, this.tree.position(:, :, reused_node_ind));
             this.cumcost(reused_node_ind) = this.cumcost(parent_node_ind) + this.cost(reused_node_ind);
         end
-        
     end
     
     methods(Static)
-        function dist = euclidian_distance(src_pos, dest_pos)
-            dist = norm(src_pos - dest_pos);
-        end
         function hCirc = plot_circle(x, y, r)
             t = 0:0.001:2*pi;
             cir_x = r*cos(t) + x;

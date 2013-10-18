@@ -435,9 +435,6 @@ classdef FNSimple2D < handle
                     this.parent(neighbors(ind)) = new_node_ind;
                     this.children(new_node_ind) = this.children(new_node_ind) + 1;
                     this.num_rewired = this.num_rewired + 1;
-                    
-                    
-                    kids = this.list(this.children == neighbors(ind));
                 end
             end
         end
@@ -485,6 +482,12 @@ classdef FNSimple2D < handle
             this.tree(:, node_to_remove) = [intmax; intmax];
             this.free_nodes(this.free_nodes_ind) = node_to_remove;
             this.free_nodes_ind = this.free_nodes_ind + 1;
+            
+            for ind=1:this.bin_ind(end,node_to_remove)
+                upd = setdiff(this.bin(this.bin_ind(ind, node_to_remove)).nodes(1:this.bin(this.bin_ind(ind, node_to_remove)).last), node_to_remove);
+                this.bin(this.bin_ind(ind, node_to_remove)).nodes(1:numel(upd)) = upd;
+            end
+            this.bin_ind(end,node_to_remove) = 0;
         end
         
         function reused_node_ind = reuse_node(this, nearest_node, new_node_position)
@@ -500,6 +503,108 @@ classdef FNSimple2D < handle
             this.children(nearest_node) = this.children(nearest_node) + 1;
             this.cost(reused_node_ind) = norm(this.tree(:, nearest_node) - new_node_position);
             this.cumcost(reused_node_ind) = this.cumcost(nearest_node) + this.cost(reused_node_ind);
+    
+            radius = this.delta_near;
+            
+            x_comp = int32(new_node_position(1) / this.bin_size - 0.5);
+            y_comp = int32(new_node_position(2) / this.bin_size - 0.5);
+            
+            cur_bin = x_comp + y_comp*this.bin_x + this.bin_offset;
+            
+            this.bin(cur_bin).last = this.bin(cur_bin).last + 1;
+            this.bin(cur_bin).nodes(this.bin(cur_bin).last) = reused_node_ind;
+            
+            this.bin_ind(end,reused_node_ind) = this.bin_ind(end, reused_node_ind) + 1;
+            this.bin_ind(this.bin_ind(end, reused_node_ind), reused_node_ind) = cur_bin;
+            
+            %% placing nodes in additional bins
+            x_left = x_comp;
+            x_right = x_comp;
+            y_top = y_comp;
+            y_bottom = y_comp;
+            if new_node_position(1) - radius >= this.XY_BOUNDARY(1)
+                x_left = int32((new_node_position(1) - radius)/this.bin_size - 0.5);
+            end
+            if new_node_position(1) + radius <= this.XY_BOUNDARY(2)
+                x_right = int32((new_node_position(1) + radius)/this.bin_size - 0.5);
+            end
+            if new_node_position(2) - radius >= this.XY_BOUNDARY(3)
+                y_top = int32((new_node_position(2) + radius)/this.bin_size - 0.5);
+            end
+            if new_node_position(2) + radius <= this.XY_BOUNDARY(4)
+                y_bottom = int32((new_node_position(2) - radius)/this.bin_size - 0.5);
+            end
+            
+            if x_comp > x_left && cur_bin - 1 > 0
+                this.bin(cur_bin-1).last = this.bin(cur_bin-1).last + 1;
+                this.bin(cur_bin-1).nodes(this.bin(cur_bin-1).last) = reused_node_ind;
+                
+                this.bin_ind(end,reused_node_ind) = this.bin_ind(end, reused_node_ind) + 1;
+                this.bin_ind(this.bin_ind(end,reused_node_ind),reused_node_ind) = cur_bin-1;
+            end
+            
+            if x_comp < x_right && cur_bin + 1 < this.nbins
+                this.bin(cur_bin+1).last = this.bin(cur_bin+1).last + 1;
+                this.bin(cur_bin+1).nodes(this.bin(cur_bin+1).last) = reused_node_ind;
+                
+                this.bin_ind(end,reused_node_ind) = this.bin_ind(end, reused_node_ind) + 1;
+                this.bin_ind(this.bin_ind(end, reused_node_ind), reused_node_ind) = cur_bin+1;
+            end
+            
+            if y_comp < y_top
+                if cur_bin+this.bin_x <= this.nbins
+                    this.bin(cur_bin+this.bin_x).last = this.bin(cur_bin+this.bin_x).last + 1;
+                    this.bin(cur_bin+this.bin_x).nodes(this.bin(cur_bin+this.bin_x).last) = reused_node_ind;
+                    
+                    this.bin_ind(end,reused_node_ind) = this.bin_ind(end, reused_node_ind) + 1;
+                    this.bin_ind(this.bin_ind(end,reused_node_ind),reused_node_ind) = cur_bin+this.bin_x;
+                    if x_comp > x_left
+                        this.bin(cur_bin-1+this.bin_x).last = this.bin(cur_bin-1+this.bin_x).last + 1;
+                        this.bin(cur_bin-1+this.bin_x).nodes(this.bin(cur_bin-1+this.bin_x).last) = reused_node_ind;
+                        
+                        this.bin_ind(end,reused_node_ind) = this.bin_ind(end, reused_node_ind) + 1;
+                        this.bin_ind(this.bin_ind(end,reused_node_ind),reused_node_ind) = cur_bin-1+this.bin_x;
+                    end
+                    if x_comp < x_right && cur_bin+this.bin_x+1 <= this.nbins
+                        this.bin(cur_bin+1+this.bin_x).last = this.bin(cur_bin+1+this.bin_x).last + 1;
+                        this.bin(cur_bin+1+this.bin_x).nodes(this.bin(cur_bin+1+this.bin_x).last) = reused_node_ind;
+                        
+                        this.bin_ind(end,reused_node_ind) = this.bin_ind(end, reused_node_ind) + 1;
+                        this.bin_ind(this.bin_ind(end,reused_node_ind),reused_node_ind) = cur_bin+1+this.bin_x;
+                    end
+                end
+            end
+            
+            if y_comp > y_bottom
+                if cur_bin-this.bin_x > 0
+                    this.bin(cur_bin-this.bin_x).last = this.bin(cur_bin-this.bin_x).last + 1;
+                    this.bin(cur_bin-this.bin_x).nodes(this.bin(cur_bin-this.bin_x).last) = reused_node_ind;
+                    
+                    this.bin_ind(end,reused_node_ind) = this.bin_ind(end, reused_node_ind) + 1;
+                    this.bin_ind(this.bin_ind(end,reused_node_ind),reused_node_ind) = cur_bin-this.bin_x;
+                    
+                    if x_comp > x_left && cur_bin-1-this.bin_x > 0
+                        this.bin(cur_bin-1-this.bin_x).last = this.bin(cur_bin-1-this.bin_x).last + 1;
+                        this.bin(cur_bin-1-this.bin_x).nodes(this.bin(cur_bin-1-this.bin_x).last) = reused_node_ind;
+                        
+                        this.bin_ind(end,reused_node_ind) = this.bin_ind(end, reused_node_ind) + 1;
+                        this.bin_ind(this.bin_ind(end,reused_node_ind),reused_node_ind) = cur_bin-1-this.bin_x;
+                    end
+                    if x_comp < x_right
+                        this.bin(cur_bin+1-this.bin_x).last = this.bin(cur_bin+1-this.bin_x).last + 1;
+                        this.bin(cur_bin+1-this.bin_x).nodes(this.bin(cur_bin+1-this.bin_x).last) = reused_node_ind;
+                        
+                        this.bin_ind(end,reused_node_ind) = this.bin_ind(end, reused_node_ind) + 1;
+                        this.bin_ind(this.bin_ind(end,reused_node_ind),reused_node_ind) = cur_bin+1-this.bin_x;
+                    end
+                end
+            end
+            
+            queue = zeros(1, int32(this.max_nodes/5));
+            for ind = 1:
+           
+            
+            
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%
