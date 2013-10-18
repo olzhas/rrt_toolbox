@@ -17,6 +17,7 @@ classdef FNSimple2D < handle
         dynamic_obstacle    % Dynamic Obstacles Information
         best_path_node      % The index of last node of the best path
         goal_reached
+        max_nodes 
         %%% Binning for faster neighbor search
         % bins are square
         bin_size
@@ -36,6 +37,7 @@ classdef FNSimple2D < handle
         % class constructor
         function this = FNSimple2D(rand_seed, max_nodes, map, conf)
             max_nodes = int32(max_nodes);
+            this.max_nodes = max_nodes;
             rng(rand_seed);
             this.tree = zeros(2, max_nodes);
             this.parent = zeros(1, max_nodes);
@@ -421,6 +423,7 @@ classdef FNSimple2D < handle
             % method looks thru all neighbors(except min_node_ind) and
             % seeks and reconnects neighbors to the new node if it is
             % cheaper
+            queue = zeros(1, int32(this.max_nodes/5));
             for ind = 1:numel(neighbors)
                 % omit
                 if (min_node_ind == neighbors(ind))
@@ -430,11 +433,28 @@ classdef FNSimple2D < handle
                 if (temp_cost < this.cumcost(neighbors(ind)) && ...
                         ~this.obstacle_collision(this.tree(:, new_node_ind), neighbors(ind)))
                     
-                    this.cumcost(neighbors(ind)) = temp_cost;
+                    %this.cumcost(neighbors(ind)) = temp_cost;
                     this.children(this.parent(neighbors(ind))) = this.children(this.parent(neighbors(ind))) - 1;
                     this.parent(neighbors(ind)) = new_node_ind;
                     this.children(new_node_ind) = this.children(new_node_ind) + 1;
                     this.num_rewired = this.num_rewired + 1;
+                    
+                    bottom = 0;
+                    top = 0;
+                    bottom = bottom + 1;
+                    queue(bottom) = neighbors(ind);
+                    delta_cost = temp_cost - this.cumcost(neighbors(ind));
+                    
+                    while top < bottom
+                        top = top+1;
+                        cur = queue(top);
+                        this.cumcost(cur) = this.cumcost(cur)+delta_cost;
+                        kids = this.list(this.parent == cur);
+                        for k_ind = 1:numel(kids)
+                            bottom = bottom + 1;
+                            queue(bottom) = kids(k_ind);
+                        end
+                    end           
                 end
             end
         end
@@ -503,7 +523,7 @@ classdef FNSimple2D < handle
             this.children(nearest_node) = this.children(nearest_node) + 1;
             this.cost(reused_node_ind) = norm(this.tree(:, nearest_node) - new_node_position);
             this.cumcost(reused_node_ind) = this.cumcost(nearest_node) + this.cost(reused_node_ind);
-    
+            
             radius = this.delta_near;
             
             x_comp = int32(new_node_position(1) / this.bin_size - 0.5);
@@ -595,16 +615,10 @@ classdef FNSimple2D < handle
                         this.bin(cur_bin+1-this.bin_x).nodes(this.bin(cur_bin+1-this.bin_x).last) = reused_node_ind;
                         
                         this.bin_ind(end,reused_node_ind) = this.bin_ind(end, reused_node_ind) + 1;
-                        this.bin_ind(this.bin_ind(end,reused_node_ind),reused_node_ind) = cur_bin+1-this.bin_x;
+                        this.bin_ind(this.bin_ind(end,reused_node_ind), reused_node_ind) = cur_bin+1-this.bin_x;
                     end
                 end
             end
-            
-            queue = zeros(1, int32(this.max_nodes/5));
-            for ind = 1:
-           
-            
-            
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%
