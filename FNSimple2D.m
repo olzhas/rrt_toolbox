@@ -621,6 +621,38 @@ classdef FNSimple2D < handle
             end
         end
         
+        function [backtrace_path, length] = getResultantPath(this)
+            %%% Find the optimal path to the goal
+            % finding all the point which are in the desired region
+            distances = zeros(this.nodes_added, 2);
+            distances(:, 1) = sum((this.tree(:,1:(this.nodes_added)) - repmat(this.goal_point', 1, this.nodes_added)).^2);
+            distances(:, 2) = 1:this.nodes_added;
+            distances = sortrows(distances, 1);
+            distances(:, 1) = distances(:, 1) <= this.delta_goal_point ^ 2;
+            dist_index = numel(find(distances(:, 1) == 1));
+            % find the cheapest path
+            if(dist_index ~= 0)
+                distances(:, 1) = this.cumcost(int32(distances(:, 2)));
+                distances = distances(1:dist_index, :);
+                distances = sortrows(distances, 1);
+                nearest_node_index = distances(1,2);
+            else
+                disp('NOTICE! Robot cannot reach the goal');
+                nearest_node_index = distances(1,2);
+            end
+            % backtracing the path
+            current_index = nearest_node_index;
+            path_iter = 1;
+            backtrace_path = zeros(1,1);
+            while(current_index ~= 1)
+                backtrace_path(path_iter) = current_index;
+                path_iter = path_iter + 1;
+                current_index = this.parent(current_index);
+            end
+            backtrace_path(path_iter) = current_index;
+            length = path_iter;
+        end
+        
         %%%%%%%%%%%%%%%%%%%%%%%%%
         function plot(this)
             %%% Find the optimal path to the goal
@@ -659,9 +691,68 @@ classdef FNSimple2D < handle
             for k = 1:this.obstacle.num
                 p2 = fill(this.obstacle.output{k}(1:end, 1), this.obstacle.output{k}(1:end, 2), 'r');
                 set(p2,'HandleVisibility','off','EdgeAlpha',0);
-                this.plot_circle(this.obstacle.cir_center{k}(1),this.obstacle.cir_center{k}(2), this.obstacle.r(k));
+                %this.plot_circle(this.obstacle.cir_center{k}(1),this.obstacle.cir_center{k}(2), this.obstacle.r(k));
                 set(p2,'HandleVisibility','off','EdgeAlpha',0);
             end
+            
+            drawn_nodes = zeros(1, this.nodes_added);
+            for ind = this.nodes_added:-1:1;
+                if(sum(this.free_nodes(1:this.free_nodes_ind) == ind)>0)
+                    continue;
+                end
+                current_index = ind;
+                while(current_index ~= 1 && current_index ~= -1)
+                    % avoid drawing same nodes twice or more times
+                    if(drawn_nodes(current_index) == false || drawn_nodes(this.parent(current_index)) == false)
+                        plot([this.tree(1,current_index);this.tree(1, this.parent(current_index))], ...
+                            [this.tree(2, current_index);this.tree(2, this.parent(current_index))],'g-','LineWidth', 0.5);
+                        plot([this.tree(1,current_index);this.tree(1, this.parent(current_index))], ...
+                            [this.tree(2, current_index);this.tree(2, this.parent(current_index))],'.c');
+                        drawn_nodes(current_index) = true;
+                    end
+                    current_index = this.parent(current_index);
+                end
+            end
+            plot(this.tree(1,backtrace_path), this.tree(2,backtrace_path),'*b-','LineWidth', 2);
+            this.plot_circle(this.goal_point(1), this.goal_point(2), this.delta_goal_point);
+            axis(this.XY_BOUNDARY);
+            disp(num2str(this.cumcost(backtrace_path(1))));
+        end
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%
+        function plot_without_obstacles(this)
+            %%% Find the optimal path to the goal
+            % finding all the point which are in the desired region
+            distances = zeros(this.nodes_added, 2);
+            distances(:, 1) = sum((this.tree(:,1:(this.nodes_added)) - repmat(this.goal_point', 1, this.nodes_added)).^2);
+            distances(:, 2) = 1:this.nodes_added;
+            distances = sortrows(distances, 1);
+            distances(:, 1) = distances(:, 1) <= this.delta_goal_point ^ 2;
+            dist_index = numel(find(distances(:, 1) == 1));
+            % find the cheapest path
+            if(dist_index ~= 0)
+                distances(:, 1) = this.cumcost(int32(distances(:, 2)));
+                distances = distances(1:dist_index, :);
+                distances = sortrows(distances, 1);
+                nearest_node_index = distances(1,2);
+            else
+                disp('NOTICE! Robot cannot reach the goal');
+                nearest_node_index = distances(1,2);
+            end
+            % backtracing the path
+            current_index = nearest_node_index;
+            path_iter = 1;
+            backtrace_path = zeros(1,1);
+            while(current_index ~= 1)
+                backtrace_path(path_iter) = current_index;
+                path_iter = path_iter + 1;
+                current_index = this.parent(current_index);
+            end
+            backtrace_path(path_iter) = current_index;
+            close all;
+            figure;
+            set(gcf(), 'Renderer', 'opengl');
+            hold on;
             
             drawn_nodes = zeros(1, this.nodes_added);
             for ind = this.nodes_added:-1:1;

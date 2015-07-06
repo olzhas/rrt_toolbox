@@ -7,4 +7,10 @@ max_iter = 7e3;
 is_benchmark = false;
 rand_seed = 40;
 variant = 'FNSimple2D';
-result = rrtr(map, max_iter, is_benchmark, rand_seed, variant);
+result = rrt(map, max_iter, is_benchmark, rand_seed, variant);
+
+[path, cost] = result.getResultantPath();
+
+speed = 20;
+
+approx_time = cost / speed
