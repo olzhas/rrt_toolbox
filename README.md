@@ -29,6 +29,7 @@ problems for simple 2D mobile robot model and nDOF Redundant Manipulator
 One can add other additional models implementing all methods mentioned in
 rrt.m, rrt\_star.m, rrt\_star\_fn.m
 
+[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.45633.svg)](http://dx.doi.org/10.5281/zenodo.45633)
 
 ## Authors
 - Olzhas Adiyatov oadiyatov[at]nu.edu.kz
