@@ -66,7 +66,7 @@ classdef FNSimple2D < handle
             
             this.bin_size = conf.bin_size;
             this.bin_x = ceil((this.XY_BOUNDARY(2) - this.XY_BOUNDARY(1))/this.bin_size);
-            this.bin_y = ceil((this.XY_BOUNDARY(4) - this.XY_BOUNDARY(2))/this.bin_size);
+            this.bin_y = ceil((this.XY_BOUNDARY(4) - this.XY_BOUNDARY(3))/this.bin_size);
             
             delta = this.bin_size/100;
             left_edge = int32((this.XY_BOUNDARY(1) + delta) / this.bin_size - 0.5);
