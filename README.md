@@ -1,5 +1,7 @@
 [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.45633.svg)](http://dx.doi.org/10.5281/zenodo.45633)
 
+[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Q5Q71OPS8)
+
 MATLAB implementation of RRT, RRT\* and RRT\*FN algorithms.
 ================================================================
 
@@ -36,3 +38,4 @@ rrt.m, rrt\_star.m, rrt\_star\_fn.m
 - Atakan Varol
 
 (c) 2013
+
